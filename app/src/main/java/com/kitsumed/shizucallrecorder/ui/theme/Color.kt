@@ -10,43 +10,34 @@ package com.kitsumed.shizucallrecorder.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ─────────────────────────────────────────────────────────────────────────────
-// "Ember" palette. Light theme (a warm cream, never sterile white) is the hero
-// look; dark theme is a fully-considered warm-charcoal secondary, not an
-// afterthought inversion. One committed accent hue (burnt amber/ember) is used
-// consistently for primary actions and active/playing states. True red is
-// reserved exclusively for the literal "recording live" indicator - never used
-// decoratively elsewhere.
-// ─────────────────────────────────────────────────────────────────────────────
+// iOS-inspired system palette. The app intentionally uses one blue interaction
+// accent, neutral grouped surfaces, and red only for destructive/live states.
+val IOSBlue = Color(0xFF007AFF)
+val IOSBlueDark = Color(0xFF0A84FF)
+val IOSBlueContainerLight = Color(0xFFEAF3FF)
+val IOSBlueContainerDark = Color(0xFF0D2847)
+val IOSCyan = Color(0xFF32ADE6)
+val IOSMint = Color(0xFF34C759)
+val IOSNavy = Color(0xFF17324D)
 
-// --- Accent ("Ember") — the app's one confident, sharp accent ---
-val EmberDeep = Color(0xFFA34E0A)     // Primary on the light/cream hero theme (dark enough to read on cream)
-val EmberBright = Color(0xFFFF9E45)   // Primary/tertiary on the dark theme, and shared "active" highlight
-val EmberContainerLight = Color(0xFFF6DCBB)
-val EmberContainerDark = Color(0xFF5C3210)
-val OnEmberDeep = Color(0xFFFFF6EC)   // Cream text on the deep ember button (light theme)
-val OnEmberBright = Color(0xFF2B1400) // Near-black brown text on the bright ember button (dark theme)
+val IOSGroupedBackground = Color(0xFFF2F2F7)
+val IOSCell = Color(0xFFFFFFFF)
+val IOSSecondarySurface = Color(0xFFF7F7FA)
+val IOSTertiarySurface = Color(0xFFE5E5EA)
+val IOSSeparator = Color(0xFFC6C6C8)
+val IOSLabel = Color(0xFF000000)
+val IOSSecondaryLabel = Color(0xFF8E8E93)
 
-// --- Light theme surfaces: warm cream, not stark white ---
-val CreamGround = Color(0xFFF5EFE3)
-val CreamSurface = Color(0xFFFCF8F0)
-val CreamSurfaceHigh = Color(0xFFEDE3CE)
-val CreamOutline = Color(0xFFCFC0A6)
+val IOSDarkBackground = Color(0xFF000000)
+val IOSDarkCell = Color(0xFF1C1C1E)
+val IOSDarkSecondarySurface = Color(0xFF2C2C2E)
+val IOSDarkTertiarySurface = Color(0xFF3A3A3C)
+val IOSDarkSeparator = Color(0xFF38383A)
+val IOSDarkLabel = Color(0xFFFFFFFF)
+val IOSDarkSecondaryLabel = Color(0xFF98989D)
 
-// --- Dark theme surfaces: warm charcoal, not a cold blue-gray ---
-val CharcoalGround = Color(0xFF16130F)
-val CharcoalSurface = Color(0xFF1F1B15)
-val CharcoalSurfaceHigh = Color(0xFF2A241C)
-val CharcoalOutline = Color(0xFF4C4234)
-
-// --- Text ---
-val TextOnCream = Color(0xFF201A10)
-val TextOnCreamMuted = Color(0xFF6E6350)
-val TextOnCharcoal = Color(0xFFF1E9DA)
-val TextOnCharcoalMuted = Color(0xFFB7AB96)
-
-// --- Status: true red, reserved only for the live-recording indicator / destructive actions ---
-val RecordingRed = Color(0xFFD8402E)
-val OnRecordingRed = Color(0xFFFFF5F2)
-val RecordingRedContainerLight = Color(0xFFF6D6CF)
-val RecordingRedContainerDark = Color(0xFF4A1F17)
+val RecordingRed = Color(0xFFFF3B30)
+val RecordingRedDark = Color(0xFFFF453A)
+val OnRecordingRed = Color(0xFFFFFFFF)
+val RecordingRedContainerLight = Color(0xFFFFE9E7)
+val RecordingRedContainerDark = Color(0xFF4A1512)

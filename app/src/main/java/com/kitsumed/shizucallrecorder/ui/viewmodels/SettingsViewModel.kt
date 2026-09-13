@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.kitsumed.shizucallrecorder.BuildConfig
 import com.kitsumed.shizucallrecorder.data.AppPreferences
 import com.kitsumed.shizucallrecorder.integrations.scrcpy.ScrcpyAudioCodec
+import com.kitsumed.shizucallrecorder.services.backup.GoogleDriveBackupScheduler
 import com.kitsumed.shizucallrecorder.services.callDetection.CallDetectionMode
 import com.kitsumed.shizucallrecorder.services.callDetection.CallDetectionOrchestrator
 import com.kitsumed.shizucallrecorder.services.callDetection.phoneState.PhoneStateSessionManager
@@ -71,10 +72,10 @@ interface SettingsActions {
     fun getAppVersion(): String
     fun setShizukuAutoManageEnabled(enabled: Boolean)
     fun setShizukuStartOnRecordEnabled(enabled: Boolean)
-    fun setShizukuAuthKey(key: String)
     fun setFileNameTemplate(template: String)
     fun setCallDetectionMode(mode: CallDetectionMode)
     fun setRecordThirdPartyCalls(enabled: Boolean)
+    fun setGoogleDriveBackupEnabled(enabled: Boolean)
     fun setPostRecordingFileNotification(enabled: Boolean)
     fun setOverlayEnabled(enabled: Boolean)
     fun setRetentionMode(mode: AppPreferences.RetentionMode)
@@ -239,11 +240,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      * @param codec The codec key string.
      */
     override fun setAudioCodec(codec: String) {
-        preferences.setAudioCodec(codec)
-        ScrcpyAudioCodec.fromKey(codec).let {
-            // Automatically adjust the bitrate to recommended value when codec changes
-            preferences.setAudioBitRate(it.defaultBitRate)
-        }
+        preferences.setAudioCodec(ScrcpyAudioCodec.AAC.cliKey)
+        preferences.setAudioBitRate(ScrcpyAudioCodec.AAC.defaultBitRate)
         refresh()
     }
 
@@ -314,7 +312,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     /** Enables or disables the automatic management of Shizuku using broadcasts.
      *
-     * @param enabled `true` to let the app start/stop Shizuku.
+     * @param enabled `true` to let the app automatically start/recover Shizuku.
      */
     override fun setShizukuAutoManageEnabled(enabled: Boolean) {
         preferences.setShizukuAutoManageEnabled(enabled)
@@ -324,15 +322,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     /** Enables or disables starting Shizuku only when recording starts. */
     override fun setShizukuStartOnRecordEnabled(enabled: Boolean) {
         preferences.setShizukuStartOnRecordEnabled(enabled)
-        refresh()
-    }
-
-    /** Saves the Shizuku auth key used to send the start/stop broadcasts.
-     *
-     * @param key The auth key string.
-     */
-    override fun setShizukuAuthKey(key: String) {
-        preferences.setShizukuAuthKey(key)
         refresh()
     }
 
@@ -410,6 +399,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      */
     override fun setRecordThirdPartyCalls(enabled: Boolean) {
         preferences.setRecordThirdPartyCallsEnabled(enabled)
+        refresh()
+    }
+
+    /** Enables or disables automatic copies of completed recordings to the selected Drive folder. */
+    override fun setGoogleDriveBackupEnabled(enabled: Boolean) {
+        preferences.setGoogleDriveBackupEnabled(enabled)
+        if (enabled) {
+            GoogleDriveBackupScheduler.enqueueExisting(appContext)
+        }
+        refresh()
+    }
+
+    /** Saves the Drive destination, enables backup, and queues a catch-up copy of existing calls. */
+    fun setGoogleDriveBackupFolder(uri: android.net.Uri) {
+        preferences.setGoogleDriveBackupFolderUri(uri)
+        preferences.setGoogleDriveBackupEnabled(true)
+        GoogleDriveBackupScheduler.enqueueExisting(appContext)
         refresh()
     }
 

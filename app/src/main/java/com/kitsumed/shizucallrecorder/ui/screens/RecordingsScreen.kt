@@ -19,7 +19,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -32,14 +31,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Call
-import androidx.compose.material.icons.outlined.CallMade
-import androidx.compose.material.icons.outlined.CallReceived
+import androidx.compose.material.icons.automirrored.outlined.CallMade
+import androidx.compose.material.icons.automirrored.outlined.CallReceived
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FolderOff
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Search
@@ -77,13 +75,9 @@ import com.kitsumed.shizucallrecorder.ui.viewmodels.RecordingsFilterState
 import com.kitsumed.shizucallrecorder.ui.viewmodels.RecordingsSelectionState
 import com.kitsumed.shizucallrecorder.ui.viewmodels.RecordingsUiState
 import com.kitsumed.shizucallrecorder.ui.viewmodels.RecordingsViewModel
-import com.kitsumed.shizucallrecorder.ui.theme.CharcoalGround
-import com.kitsumed.shizucallrecorder.ui.theme.CharcoalSurfaceHigh
-import com.kitsumed.shizucallrecorder.ui.theme.EmberBright
-import com.kitsumed.shizucallrecorder.ui.theme.OnEmberBright
+import com.kitsumed.shizucallrecorder.ui.theme.IOSCyan
+import com.kitsumed.shizucallrecorder.ui.theme.IOSMint
 import com.kitsumed.shizucallrecorder.ui.theme.RecordingRed
-import com.kitsumed.shizucallrecorder.ui.theme.TextOnCharcoal
-import com.kitsumed.shizucallrecorder.ui.theme.TextOnCharcoalMuted
 import com.kitsumed.shizucallrecorder.utils.RecordingShareHelper
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -102,7 +96,6 @@ fun RecordingsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val shareChooserTitle = stringResource(R.string.recordings_share)
     val viewModel: RecordingsViewModel = viewModel()
 
     val uiState by viewModel.uiState.collectAsState()
@@ -141,14 +134,11 @@ fun RecordingsScreen(
         onBatchShare = {
             val items = viewModel.getSelectedItemsForShare()
             if (items.isNotEmpty()) {
-                val uris = ArrayList(items.map { it.uri })
-                val mimeType = context.contentResolver.getType(items.first().uri) ?: "audio/*"
-                val intent = android.content.Intent(android.content.Intent.ACTION_SEND_MULTIPLE).apply {
-                    type = mimeType
-                    putParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, uris)
-                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                context.startActivity(android.content.Intent.createChooser(intent, shareChooserTitle))
+                val intent = RecordingShareHelper.buildMultipleShareChooser(
+                    context,
+                    items.map { it.uri to it.displayName }
+                )
+                context.startActivity(intent)
             }
         },
         modifier = modifier
@@ -261,31 +251,26 @@ fun RecordingsContent(
 
 // ── Top bars ────────────────────────────────────────────────────────────────────────────────
 
-/**
- * The top bar is deliberately dark warm-charcoal "chrome" regardless of theme - the same
- * purposeful light-canvas-with-dark-chrome contrast used by apps like Linear/Notion - rather
- * than blending into the light background.
- */
 @Composable
 private fun RecordingsTopBar(onOpenSettings: () -> Unit) {
-    Surface(color = CharcoalGround, contentColor = TextOnCharcoal) {
+    Surface(color = Color.Transparent) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 22.dp, vertical = 18.dp),
+                .padding(horizontal = 20.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = stringResource(R.string.recordings_title),
                 style = MaterialTheme.typography.displaySmall,
-                color = TextOnCharcoal
+                color = MaterialTheme.colorScheme.onBackground
             )
             IconButton(onClick = onOpenSettings) {
                 Icon(
                     imageVector = Icons.Outlined.Settings,
                     contentDescription = stringResource(R.string.general_settings),
-                    tint = TextOnCharcoal
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -301,7 +286,7 @@ private fun SelectionTopBar(
     onStar: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Surface(color = CharcoalGround, contentColor = TextOnCharcoal) {
+    Surface(color = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurface) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -309,22 +294,22 @@ private fun SelectionTopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onClose) {
-                Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.general_close), tint = TextOnCharcoal)
+                Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.general_close), tint = MaterialTheme.colorScheme.primary)
             }
             Text(
                 text = selectedCount.toString(),
                 style = MaterialTheme.typography.titleMedium,
-                color = TextOnCharcoal,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onSelectAll) {
-                Icon(Icons.Outlined.Check, contentDescription = stringResource(R.string.recordings_select_all), tint = TextOnCharcoal)
+                Icon(Icons.Outlined.Check, contentDescription = stringResource(R.string.recordings_select_all), tint = MaterialTheme.colorScheme.primary)
             }
             IconButton(onClick = onStar) {
-                Icon(Icons.Default.Star, contentDescription = stringResource(R.string.recordings_star_add), tint = EmberBright)
+                Icon(Icons.Default.Star, contentDescription = stringResource(R.string.recordings_star_add), tint = MaterialTheme.colorScheme.primary)
             }
             IconButton(onClick = onShare) {
-                Icon(Icons.Outlined.Share, contentDescription = stringResource(R.string.recordings_share), tint = TextOnCharcoal)
+                Icon(Icons.Outlined.Share, contentDescription = stringResource(R.string.recordings_share), tint = MaterialTheme.colorScheme.primary)
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.general_delete), tint = RecordingRed)
@@ -343,35 +328,51 @@ private fun SearchAndFilterBar(
     onDateFilterChange: (RecordingDateFilter) -> Unit,
     onSortOrderChange: (RecordingSortOrder) -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-        OutlinedTextField(
-            value = filterState.query,
-            onValueChange = onSearchQueryChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(R.string.recordings_search_hint)) },
-            leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-            singleLine = true,
-            shape = MaterialTheme.shapes.extraLarge
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            DirectionSegmentedControl(
-                current = filterState.direction,
-                onSelected = onDirectionFilterChange,
-                modifier = Modifier.weight(1f)
+    Surface(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 4.dp
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            TextField(
+                value = filterState.query,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(R.string.recordings_search_hint)) },
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                )
             )
 
-            SortMenuButton(current = filterState.sortOrder, onSortOrderChange = onSortOrderChange)
-        }
+            Spacer(modifier = Modifier.height(12.dp))
 
-        AnimatedVisibility(visible = true) {
-            DateFilterRow(current = filterState.dateFilter, onDateFilterChange = onDateFilterChange)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                DirectionSegmentedControl(
+                    current = filterState.direction,
+                    onSelected = onDirectionFilterChange,
+                    modifier = Modifier.weight(1f)
+                )
+
+                SortMenuButton(current = filterState.sortOrder, onSortOrderChange = onSortOrderChange)
+            }
+
+            AnimatedVisibility(visible = true) {
+                DateFilterRow(current = filterState.dateFilter, onDateFilterChange = onDateFilterChange)
+            }
         }
     }
 }
@@ -395,7 +396,7 @@ private fun DirectionSegmentedControl(
     )
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(50))
+            .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(3.dp),
     ) {
@@ -410,7 +411,7 @@ private fun DirectionSegmentedControl(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(50))
+                    .clip(MaterialTheme.shapes.small)
                     .background(backgroundColor)
                     .combinedClickable(onClick = { onSelected(value) })
                     .padding(vertical = 8.dp),
@@ -442,14 +443,18 @@ private fun DateFilterRow(current: RecordingDateFilter, onDateFilterChange: (Rec
         )
         options.forEach { (value, label) ->
             val selected = current == value
-            AssistChip(
-                onClick = { onDateFilterChange(value) },
-                label = { Text(label, style = MaterialTheme.typography.labelMedium) },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-                    labelColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                contentColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.combinedClickable(onClick = { onDateFilterChange(value) })
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp)
                 )
-            )
+            }
         }
     }
 }
@@ -507,14 +512,38 @@ private fun SortMenuButton(current: RecordingSortOrder, onSortOrderChange: (Reco
 
 @Composable
 private fun LoadingState() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.tertiary)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(stringResource(R.string.recordings_loading), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    StateCard {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            tonalElevation = 0.dp,
+            shadowElevation = 2.dp
+        ) {
+            Box(
+                modifier = Modifier.size(64.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(30.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 3.dp
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(18.dp))
+        Text(
+            text = stringResource(R.string.recordings_loading),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = stringResource(R.string.recordings_loading_message),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
     }
 }
 
@@ -569,17 +598,32 @@ private fun CenteredMessage(
     tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     extra: @Composable ColumnScope.() -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(48.dp))
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(title, style = MaterialTheme.typography.titleLarge, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-        Spacer(modifier = Modifier.height(6.dp))
+    StateCard {
+        Surface(
+            shape = CircleShape,
+            color = if (tint == MaterialTheme.colorScheme.error) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                MaterialTheme.colorScheme.primaryContainer
+            },
+            tonalElevation = 0.dp,
+            shadowElevation = 2.dp
+        ) {
+            Box(
+                modifier = Modifier.size(66.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(30.dp))
+            }
+        }
+        Spacer(modifier = Modifier.height(18.dp))
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             message,
             style = MaterialTheme.typography.bodyMedium,
@@ -587,6 +631,33 @@ private fun CenteredMessage(
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
         extra()
+    }
+}
+
+@Composable
+private fun StateCard(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 22.dp, vertical = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 420.dp),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
+            shadowElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 30.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                content = content
+            )
+        }
     }
 }
 
@@ -609,7 +680,7 @@ private fun RecordingsList(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         itemsIndexed(items, key = { _, item -> item.recording.uri.toString() }) { index, item ->
@@ -666,23 +737,18 @@ private fun RecordingRow(
     onToggleSelected: () -> Unit
 ) {
     val recording = item.recording
-    var showMenu by remember { mutableStateOf(false) }
 
-    // The "now playing" card deliberately breaks from the light canvas into the app's dark
-    // warm-charcoal chrome (the same treatment as the top bar) for contrast and hierarchy -
-    // Linear/Notion-style purposeful dark elements on an otherwise light surface, rather than
-    // everything going pastel-flat. It stays dark the same way in the dark theme too, just with
-    // a touch more elevation to separate from the already-dark background.
-    val chromeAccent = if (isPlaying) EmberBright else MaterialTheme.colorScheme.tertiary
-    val chromeContent = if (isPlaying) TextOnCharcoal else MaterialTheme.colorScheme.onSurface
-    val chromeMuted = if (isPlaying) TextOnCharcoalMuted else MaterialTheme.colorScheme.onSurfaceVariant
+    val chromeAccent = MaterialTheme.colorScheme.primary
+    val chromeContent = MaterialTheme.colorScheme.onSurface
+    val chromeMuted = MaterialTheme.colorScheme.onSurfaceVariant
+    val rowShape = RoundedCornerShape(18.dp)
 
     Surface(
-        shape = if (isPlaying) MaterialTheme.shapes.large else MaterialTheme.shapes.medium,
-        color = if (isPlaying) CharcoalSurfaceHigh else MaterialTheme.colorScheme.surfaceContainer,
+        shape = rowShape,
+        color = if (isPlaying) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
         contentColor = chromeContent,
-        tonalElevation = if (isPlaying) 4.dp else 0.dp,
-        shadowElevation = if (isPlaying) 6.dp else 0.dp,
+        tonalElevation = 0.dp,
+        shadowElevation = 4.dp,
         modifier = Modifier
             .fillMaxWidth()
             .pointerInput(recording.uri, isSelectionMode) {
@@ -695,8 +761,9 @@ private fun RecordingRow(
                 contentDescription = item.contactName ?: recording.phoneNumber ?: recording.displayName
             }
     ) {
-        Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Column {
+            Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isSelectionMode) {
                     Checkbox(checked = isSelected, onCheckedChange = { onToggleSelected() })
                     Spacer(modifier = Modifier.width(4.dp))
@@ -730,17 +797,12 @@ private fun RecordingRow(
                             tint = if (item.isStarred) chromeAccent else chromeMuted
                         )
                     }
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.general_more), tint = chromeMuted)
-                        }
-                        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.recordings_share)) },
-                                leadingIcon = { Icon(Icons.Outlined.Share, contentDescription = null) },
-                                onClick = { showMenu = false; onShare() }
-                            )
-                        }
+                    IconButton(onClick = onShare) {
+                        Icon(
+                            imageVector = Icons.Outlined.Share,
+                            contentDescription = stringResource(R.string.recordings_share),
+                            tint = chromeAccent
+                        )
                     }
                     IconButton(onClick = onPlayOrToggle) {
                         Icon(
@@ -752,18 +814,19 @@ private fun RecordingRow(
                 }
             }
 
-            AnimatedVisibility(
-                visible = isPlaying && !isSelectionMode,
-                enter = fadeIn(springAnim()) + expandVertically(springAnim()),
-                exit = fadeOut(tween(150)) + shrinkVertically(tween(150))
-            ) {
-                InlinePlayer(
-                    playbackState = playbackState,
-                    onSeek = onSeek,
-                    onSetSpeed = onSetSpeed,
-                    accentColor = chromeAccent,
-                    mutedColor = chromeMuted
-                )
+                AnimatedVisibility(
+                    visible = isPlaying && !isSelectionMode,
+                    enter = fadeIn(springAnim()) + expandVertically(springAnim()),
+                    exit = fadeOut(tween(150)) + shrinkVertically(tween(150))
+                ) {
+                    InlinePlayer(
+                        playbackState = playbackState,
+                        onSeek = onSeek,
+                        onSetSpeed = onSetSpeed,
+                        accentColor = chromeAccent,
+                        mutedColor = chromeMuted
+                    )
+                }
             }
         }
     }
@@ -771,8 +834,13 @@ private fun RecordingRow(
 
 @Composable
 private fun DirectionBadge(direction: CallDirection?, isPlaying: Boolean) {
-    val backgroundColor = if (isPlaying) EmberBright else MaterialTheme.colorScheme.surfaceContainerHighest
-    val iconTint = if (isPlaying) OnEmberBright else MaterialTheme.colorScheme.onSurfaceVariant
+    val directionColor = when (direction) {
+        CallDirection.INCOMING -> IOSMint
+        CallDirection.OUTGOING -> MaterialTheme.colorScheme.primary
+        null -> IOSCyan
+    }
+    val backgroundColor = if (isPlaying) MaterialTheme.colorScheme.primary else directionColor.copy(alpha = 0.16f)
+    val iconTint = if (isPlaying) MaterialTheme.colorScheme.onPrimary else directionColor
     Box(
         modifier = Modifier
             .size(40.dp)
@@ -782,8 +850,8 @@ private fun DirectionBadge(direction: CallDirection?, isPlaying: Boolean) {
     ) {
         Icon(
             imageVector = when (direction) {
-                CallDirection.INCOMING -> Icons.Outlined.CallReceived
-                CallDirection.OUTGOING -> Icons.Outlined.CallMade
+                CallDirection.INCOMING -> Icons.AutoMirrored.Outlined.CallReceived
+                CallDirection.OUTGOING -> Icons.AutoMirrored.Outlined.CallMade
                 null -> Icons.Outlined.Call
             },
             contentDescription = null,
@@ -803,17 +871,13 @@ private fun InlinePlayer(
     accentColor: Color,
     mutedColor: Color
 ) {
-    // A translucent "glass" panel over the dark now-playing card - a lightweight stand-in for a
-    // true background blur (Compose's blur modifier needs API 31+; this app supports API 30+),
-    // using layered translucency to get a similar frosted feel across all supported versions.
     Surface(
-        color = Color.White.copy(alpha = 0.06f),
-        contentColor = TextOnCharcoal,
-        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = MaterialTheme.shapes.medium,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 10.dp)
-            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(18.dp))
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             if (playbackState.error != null) {
@@ -860,8 +924,8 @@ private fun InlinePlayer(
 @Composable
 private fun SpeedControl(current: Float, onSetSpeed: (Float) -> Unit, accentColor: Color) {
     Surface(
-        shape = RoundedCornerShape(50),
-        color = Color.White.copy(alpha = 0.10f),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = accentColor,
         modifier = Modifier
             .combinedClickable(
@@ -941,20 +1005,21 @@ private fun WaveformScrubber(
 
 /** Shared spring spec for a natural, physical-feeling transition instead of linear/mechanical easing. */
 private fun <T> springAnim(): androidx.compose.animation.core.SpringSpec<T> = androidx.compose.animation.core.spring(
-    dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-    stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+    dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
+    stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
 )
 
 // ── Formatting helpers ─────────────────────────────────────────────────────────────────────
 
 private fun formatDuration(millis: Long): String {
     val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(millis.coerceAtLeast(0))
-    val minutes = totalSeconds / 60
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
-    return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
+    return String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
 }
 
 private fun formatTimestamp(millis: Long): String {
-    val formatter = java.text.SimpleDateFormat("MMM d, yyyy · HH:mm", Locale.getDefault())
+    val formatter = java.text.SimpleDateFormat("MMM d, yyyy · h:mm:ss a", Locale.getDefault())
     return formatter.format(java.util.Date(millis))
 }

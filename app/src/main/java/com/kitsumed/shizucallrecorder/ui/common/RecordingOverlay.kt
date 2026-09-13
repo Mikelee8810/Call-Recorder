@@ -72,10 +72,7 @@ fun RecordingOverlay(
         label = "dotAlpha"
     )
 
-    // Animate the button background color based on recording state.
-    // Uses the app's own signal-lime accent for the active state (the same color used for the
-    // "REC" indicator dot below) instead of generic red/green, so this real-time surface reads
-    // as the same product as the rest of the redesigned app.
+    // Animate the action surface with the app's blue system accent.
     val buttonBackgroundColor by animateColorAsState(
         targetValue = if (isActivelyRecording)
             MaterialTheme.colorScheme.tertiary
@@ -102,8 +99,8 @@ fun RecordingOverlay(
         modifier = Modifier
             .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 6.dp,
-        shadowElevation = 8.dp
+        tonalElevation = 0.dp,
+        shadowElevation = 5.dp
     ) {
         Row(
             modifier = Modifier

@@ -27,6 +27,7 @@ class AppPreferences(context: Context) {
 
     companion object {
         private const val PREFS_NAME = "shizucallrecorder_prefs"
+        private const val LEGACY_SHIZUKU_AUTH_KEY = "shizuku_auth_key"
     }
 
     /**
@@ -37,14 +38,13 @@ class AppPreferences(context: Context) {
         // --- Onboarding & Legal ---
         const val DISCLAIMER_ACCEPTED = false
 
-        // Calculates (Install Time - 10 Months) to leave exactly 2 months remaining
-        fun LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME(context: Context): Long = (runCatching { context.packageManager.getPackageInfo(context.packageName, 0).firstInstallTime }.getOrDefault(Long.MIN_VALUE)) - 25920000000L // 300 days in milliseconds
-        
         // --- Storage & General ---
         val RECORDING_FOLDER_URI: String? = null
+        val GOOGLE_DRIVE_BACKUP_FOLDER_URI: String? = null
+        const val GOOGLE_DRIVE_BACKUP_ENABLED = false
         const val VIBRATION_ENABLED = true
         val CALL_DETECTION_MODE = CallDetectionMode.getDefaultModeForDevice().key
-        const val RECORD_THIRD_PARTY_CALLS = false
+        const val RECORD_THIRD_PARTY_CALLS = true
 
         const val POST_RECORDING_FILE_ACTIONS_NOTIFICATION_ENABLED = false
         const val AUTO_RECORD_INCOMING = false
@@ -67,9 +67,9 @@ class AppPreferences(context: Context) {
         
         // --- Audio/Scrcpy Quality ---
         val AUDIO_SOURCE = ScrcpyAudioSource.VOICE_CALL.cliKey
-        val AUDIO_CODEC = ScrcpyAudioCodec.OPUS.cliKey
+        val AUDIO_CODEC = ScrcpyAudioCodec.AAC.cliKey
 
-        val AUDIO_BITRATE = ScrcpyAudioCodec.OPUS.defaultBitRate
+        val AUDIO_BITRATE = ScrcpyAudioCodec.AAC.defaultBitRate
 
         // --- File Naming ---
         const val FILE_NAME_TEMPLATE = "{date}_{direction}_{phone_number}"
@@ -83,9 +83,9 @@ class AppPreferences(context: Context) {
         const val SHOW_RECORDING_OVERLAY = false
         const val OVERLAY_Y_POSITION = -1
         // --- Security ---
-        const val SHIZUKU_AUTO_MANAGE = false
+        const val SHIZUKU_AUTO_MANAGE = true
         const val SHIZUKU_START_ON_RECORD = false
-        const val SHIZUKU_AUTH_KEY = ""
+        const val SHIZUKU_AUTOMATION_AUTH = ""
 
         // --- Recordings library ---
         val STARRED_RECORDINGS = emptySet<String>()
@@ -102,10 +102,10 @@ class AppPreferences(context: Context) {
         // --- Onboarding & Legal ---
         DISCLAIMER_ACCEPTED("disclaimer_accepted"),
 
-        LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME_INAPP("last_forced_reminder_support_project_time_inapp"),
-        LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME_NOTIFICATION("last_forced_reminder_support_project_time_notification"),
         // --- Others ---
         RECORDING_FOLDER_URI("recording_folder_uri"),
+        GOOGLE_DRIVE_BACKUP_FOLDER_URI("google_drive_backup_folder_uri"),
+        GOOGLE_DRIVE_BACKUP_ENABLED("google_drive_backup_enabled"),
         VIBRATION_ENABLED("vibration_enabled"),
         POST_RECORDING_FILE_ACTIONS_NOTIFICATION_ENABLED ("post_recording_file_actions_notification_enabled"),
         AUTO_RECORD_INCOMING("auto_record_incoming"),
@@ -123,6 +123,7 @@ class AppPreferences(context: Context) {
         AUDIO_SOURCE("audio_source"),
         AUDIO_CODEC("audio_codec"),
         AUDIO_BITRATE("audio_bitrate"),
+        AUDIO_M4A_MIGRATED("audio_m4a_migrated"),
         FILE_NAME_TEMPLATE("file_name_template"),
         THEME_MODE("theme_mode"),
         DYNAMIC_COLOR("dynamic_color"),
@@ -131,7 +132,7 @@ class AppPreferences(context: Context) {
         OVERLAY_Y_POSITION("overlay_y_position"),
         SHIZUKU_AUTO_MANAGE("shizuku_auto_manage"),
         SHIZUKU_START_ON_RECORD("shizuku_start_on_record"),
-        SHIZUKU_AUTH_KEY("shizuku_auth_key"),
+        SHIZUKU_AUTOMATION_AUTH("shizuku_automation_auth"),
         CALL_DETECTION_MODE("call_detection_mode"),
         RECORD_THIRD_PARTY_CALLS("record_third_party_calls"),
 
@@ -252,18 +253,6 @@ class AppPreferences(context: Context) {
     /** Sets whether the user has accepted the disclaimer. */
     fun setDisclaimerAccepted(accepted: Boolean) = setBoolean(Key.DISCLAIMER_ACCEPTED, accepted)
 
-    /** Gets the timestamp of the last forced reminder about support project shown in-app. */
-    fun getLastForcedReminderSupportProjectTimeInApp() = getLong(Key.LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME_INAPP, DefaultsValue.LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME(appContext))
-
-    /** Sets the timestamp of the last forced reminder about support project shown in-app. */
-    fun setLastForcedReminderSupportProjectTimeInApp(time: Long) = setLong(Key.LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME_INAPP, time)
-
-    /** Gets the timestamp of the last forced reminder about support project shown in notifications. */
-    fun getLastForcedReminderSupportProjectTimeNotification() = getLong(Key.LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME_NOTIFICATION, DefaultsValue.LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME(appContext))
-
-    /** Sets the timestamp of the last forced reminder about support project shown in notifications. */
-    fun setLastForcedReminderSupportProjectTimeNotification(time: Long) = setLong(Key.LAST_FORCED_REMINDER_SUPPORT_PROJECT_TIME_NOTIFICATION, time)
-
     // -------- Storage & General --------
 
     /** Gets the user-selected folder URI for storing recordings. */
@@ -271,6 +260,21 @@ class AppPreferences(context: Context) {
     
     /** Sets the user-selected folder URI for storing recordings. */
     fun setRecordingFolderUri(uri: Uri?) = setString(Key.RECORDING_FOLDER_URI, uri?.toString())
+
+    /** Gets the user-selected Google Drive folder used for automatic recording backups. */
+    fun getGoogleDriveBackupFolderUri(): Uri? = getString(
+        Key.GOOGLE_DRIVE_BACKUP_FOLDER_URI,
+        DefaultsValue.GOOGLE_DRIVE_BACKUP_FOLDER_URI
+    )?.toUri()
+
+    /** Sets the user-selected Google Drive folder used for automatic recording backups. */
+    fun setGoogleDriveBackupFolderUri(uri: Uri?) = setString(Key.GOOGLE_DRIVE_BACKUP_FOLDER_URI, uri?.toString())
+
+    /** Returns whether completed recordings should automatically be copied to Google Drive. */
+    fun isGoogleDriveBackupEnabled() = getBoolean(Key.GOOGLE_DRIVE_BACKUP_ENABLED, DefaultsValue.GOOGLE_DRIVE_BACKUP_ENABLED)
+
+    /** Enables or disables automatic Google Drive backup for completed recordings. */
+    fun setGoogleDriveBackupEnabled(enabled: Boolean) = setBoolean(Key.GOOGLE_DRIVE_BACKUP_ENABLED, enabled)
 
     /** Checks if vibration is enabled for notifications/actions. */
     fun isVibrationEnabled() = getBoolean(Key.VIBRATION_ENABLED, DefaultsValue.VIBRATION_ENABLED)
@@ -407,11 +411,26 @@ class AppPreferences(context: Context) {
     /** Sets the configured audio source. */
     fun setAudioSource(source: String) = setString(Key.AUDIO_SOURCE, source)
 
-    /** Gets the configured audio codec for scrcpy integration. */
-    fun getAudioCodec() = getString(Key.AUDIO_CODEC, DefaultsValue.AUDIO_CODEC) ?: DefaultsValue.AUDIO_CODEC
+    /**
+     * Gets the configured audio codec for scrcpy integration.
+     * Call Recorder intentionally standardizes new recordings on AAC/M4A so files share cleanly
+     * to transcription and assistant apps. Existing installs are migrated away from the historical
+     * Opus/OGG default and any stale codec preference is repaired here as well.
+     */
+    fun getAudioCodec(): String {
+        if (getString(Key.AUDIO_CODEC, DefaultsValue.AUDIO_CODEC) != ScrcpyAudioCodec.AAC.cliKey ||
+            !getBoolean(Key.AUDIO_M4A_MIGRATED, false)
+        ) {
+            setString(Key.AUDIO_CODEC, ScrcpyAudioCodec.AAC.cliKey)
+            setInt(Key.AUDIO_BITRATE, ScrcpyAudioCodec.AAC.defaultBitRate)
+            setBoolean(Key.AUDIO_M4A_MIGRATED, true)
+        }
+        return ScrcpyAudioCodec.AAC.cliKey
+    }
     
-    /** Sets the configured audio codec. */
-    fun setAudioCodec(codec: String) = setString(Key.AUDIO_CODEC, codec)
+    /** Keeps newly recorded files on the app's share-friendly AAC/M4A format. */
+    fun setAudioCodec(@Suppress("UNUSED_PARAMETER") codec: String) =
+        setString(Key.AUDIO_CODEC, ScrcpyAudioCodec.AAC.cliKey)
 
     /** Gets the configured audio bitrate. */
     fun getAudioBitRate() = getInt(Key.AUDIO_BITRATE, DefaultsValue.AUDIO_BITRATE)
@@ -461,10 +480,10 @@ class AppPreferences(context: Context) {
 
     // -------- Security --------
 
-    /** Checks if the app should manage starting/stopping Shizuku. */
+    /** Checks if the app should automatically start/recover Shizuku. */
     fun isShizukuAutoManageEnabled() = getBoolean(Key.SHIZUKU_AUTO_MANAGE, DefaultsValue.SHIZUKU_AUTO_MANAGE)
 
-    /** Sets whether the app should manage starting/stopping Shizuku. */
+    /** Sets whether the app should automatically start/recover Shizuku. */
     fun setShizukuAutoManageEnabled(enabled: Boolean) = setBoolean(Key.SHIZUKU_AUTO_MANAGE, enabled)
 
     /** Checks if Shizuku should only start when recording starts. */
@@ -473,11 +492,20 @@ class AppPreferences(context: Context) {
     /** Sets whether Shizuku should only start when recording starts. */
     fun setShizukuStartOnRecordEnabled(enabled: Boolean) = setBoolean(Key.SHIZUKU_START_ON_RECORD, enabled)
 
-    /** Gets the Shizuku auth key. */
-    fun getShizukuAuthKey() = getString(Key.SHIZUKU_AUTH_KEY, DefaultsValue.SHIZUKU_AUTH_KEY) ?: DefaultsValue.SHIZUKU_AUTH_KEY
+    fun getShizukuAutomationAuth(): String {
+        val current = getString(Key.SHIZUKU_AUTOMATION_AUTH, null)?.trim().orEmpty()
+        if (current.isNotEmpty()) return current
 
-    /** Sets the Shizuku auth key. */
-    fun setShizukuAuthKey(key: String) = setString(Key.SHIZUKU_AUTH_KEY, key)
+        val legacy = prefs.getString(LEGACY_SHIZUKU_AUTH_KEY, null)?.trim().orEmpty()
+        if (legacy.isNotEmpty()) {
+            setShizukuAutomationAuth(legacy)
+            return legacy
+        }
+
+        return DefaultsValue.SHIZUKU_AUTOMATION_AUTH
+    }
+
+    fun setShizukuAutomationAuth(value: String) = setString(Key.SHIZUKU_AUTOMATION_AUTH, value)
 
     // -------- Recordings library --------
 

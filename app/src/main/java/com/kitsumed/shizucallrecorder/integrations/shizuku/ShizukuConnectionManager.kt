@@ -144,37 +144,64 @@ class ShizukuConnectionManager(
         }
 
         /**
-         * Starts the Shizuku ADB server via broadcast intent. Can be called even if already running.
+         * Starts the Shizuku ADB server via the manager's authenticated automation START broadcast.
+         * Can be called even if the server is already running.
          *
          * @param context The application context.
-         * @param authKey The authentication key for the Shizuku server.
          * @throws IllegalStateException if the Shizuku manager package cannot be found.
          */
-        fun startServer(context: Context, authKey: String) {
+        fun startServer(context: Context) {
             try {
                 if (isAvailable()) {
                     AppLogger.i( "Shizuku server is already running, no need to send start broadcast")
                     return
                 }
                 val packageName = getPackageName(context) ?: throw IllegalStateException("Shizuku manager package not found, cannot start server")
+                val auth = AppPreferences(context).getShizukuAutomationAuth()
+                if (auth.isBlank()) {
+                    throw IllegalStateException("Shizuku automation auth token is missing")
+                }
 
                 val action = "moe.shizuku.privileged.api.START"
                 val intent = Intent(action)
 
                 intent.apply {
                     setPackage(packageName)
-                    putExtra("auth", authKey)
+                    putExtra("auth", auth)
                     addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
                 }
                 context.sendBroadcast(intent)
-                AppLogger.i( "Sent broadcast to start Shizuku server to $packageName")
+                AppLogger.i( "Sent authenticated broadcast to start Shizuku server to $packageName")
             } catch (e: Exception) {
                 AppLogger.e( "Failed to send broadcast to start Shizuku server", e)
             }
         }
 
-        // Deliberately no stopServer(): this app only ever starts the Shizuku server, never stops
-        // it, so it stays ready to record the next call.
+        // This integration only ever starts Shizuku so it stays ready for the next call.
+
+        @Volatile private var lifecycleListenersInstalled = false
+
+        /**
+         * Registers process-wide Shizuku binder lifecycle listeners exactly once.
+         *
+         * When the server dies, Shizuku's death recipient nulls the client binder; when a new
+         * server starts, it pushes a fresh binder into our [ShizukuProvider]. Listening for both
+         * lets the watchdog react to the actual reconnect instead of guessing from a single
+         * delayed [isAvailable] poll. Safe to call repeatedly.
+         */
+        fun installLifecycleListeners(context: Context, onReconnected: () -> Unit) {
+            if (lifecycleListenersInstalled) return
+            lifecycleListenersInstalled = true
+            val appContext = context.applicationContext
+            Shizuku.addBinderDeadListener {
+                AppLogger.w("Shizuku binder died (server process gone)")
+            }
+            Shizuku.addBinderReceivedListenerSticky {
+                AppLogger.i("Shizuku binder received; server reachable (uid=${runCatching { Shizuku.getUid() }.getOrDefault(-1)})")
+                onReconnected()
+            }
+            AppLogger.d("Shizuku lifecycle listeners installed for ${appContext.packageName}")
+        }
 
         /**
          * Suspends and waits for the Shizuku server to become available, up to a specified timeout.
@@ -274,7 +301,7 @@ class ShizukuConnectionManager(
              * Since we run our ShellService via Shizuku, this happens when:
              * 1. The Shizuku ADB server  (UID 2000/0) hosting our service crashes (e.g. unhandled exception).
              * 2. The system kills the Shizuku ADB server.
-             * 3. User stop Shizuku inside the app, causing the Shizuku ADB server to close.
+             * 3. User manually stops Shizuku from the Shizuku app, causing its ADB server to close.
              */
             override fun onServiceDisconnected(name: ComponentName?) {
                 AppLogger.d( "ShellService disconnected prematurely")
@@ -356,7 +383,8 @@ class ShizukuConnectionManager(
                 // Ensure it is available since trying to unbind an already gone service will throw an exception since the binder is already "null" on Shizuku side.
                 if (isAvailable()) {
                     // Unbound service. This, by itself, does not trigger [IShellService.destroy()] since we have configured the daemon mode to false when binding.
-                    // However, Shizuku Server will trigger [IShellService.destroy()] if the user manually stop Shizuku in the app.
+                    // Shizuku Server will still trigger [IShellService.destroy()] if the user
+                    // manually stops it from the Shizuku app.
                     Shizuku.unbindUserService(userServiceArgs, serviceConn, false)
                     AppLogger.i( "ShellService was unbound")
                 } else {

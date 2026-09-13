@@ -27,10 +27,11 @@ import android.widget.Toast
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import com.kitsumed.shizucallrecorder.R
+import com.kitsumed.shizucallrecorder.utils.RecordingShareHelper
 import com.kitsumed.shizucallrecorder.data.AppPreferences
 import com.kitsumed.shizucallrecorder.data.call.EnrichedCallData
 import com.kitsumed.shizucallrecorder.utils.RecordingFileNameFormatter
-import com.kitsumed.shizucallrecorder.ui.theme.EmberBright
+import com.kitsumed.shizucallrecorder.ui.theme.IOSBlue
 
 class RecordingNotificationHelper(private val context: Context) {
 
@@ -166,7 +167,7 @@ class RecordingNotificationHelper(private val context: Context) {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)
-            .setColor(EmberBright.toArgb())
+            .setColor(IOSBlue.toArgb())
             .setColorized(state.isRecordingActive && !state.isRecordingPaused)
             .setSilent(state.isStarting || state.isRecordingActive) // Don't do a screen-incursion if we are already recording.
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
@@ -250,12 +251,7 @@ class RecordingNotificationHelper(private val context: Context) {
         )
 
         // Share action
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "audio/*"
-            putExtra(Intent.EXTRA_STREAM, fileUri)
-            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-        }
-        val chooserIntent = Intent.createChooser(shareIntent, null)
+        val chooserIntent = RecordingShareHelper.buildShareChooser(context, fileUri)
         val sharePendingIntent = PendingIntent.getActivity(
             context, REQUEST_CODE_SHARE_RECORDING, chooserIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

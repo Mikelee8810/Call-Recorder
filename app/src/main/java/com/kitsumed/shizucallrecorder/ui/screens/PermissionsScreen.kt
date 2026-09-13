@@ -55,7 +55,6 @@ import com.kitsumed.shizucallrecorder.integrations.shizuku.ShizukuConnectionMana
 import com.kitsumed.shizucallrecorder.onboarding.OnboardingStatus
 import com.kitsumed.shizucallrecorder.services.callDetection.CallDetectionMode
 import com.kitsumed.shizucallrecorder.system.openAppSettings
-import com.kitsumed.shizucallrecorder.system.openGithubReportIssue
 import com.kitsumed.shizucallrecorder.ui.common.M3DropdownField
 import com.kitsumed.shizucallrecorder.ui.common.OptionItem
 import com.kitsumed.shizucallrecorder.ui.common.ToggleListItem
@@ -229,28 +228,17 @@ fun PermissionsScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
-                            onClick = { exportLogLauncher.launch("shizucallrecorder_debug_report.txt") },
+                            onClick = { exportLogLauncher.launch("call_recorder_debug_report.txt") },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(stringResource(R.string.settings_debug_logging_generate_report))
                         }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        TextButton(
+                            onClick = { showDebugDialog = false },
+                            modifier = Modifier.align(Alignment.End)
                         ) {
-                            OutlinedButton(
-                                onClick = { activityContext.openGithubReportIssue() }
-                            ) {
-                                Text(stringResource(R.string.settings_debug_logging_report_on_github))
-                            }
-
-                            TextButton(
-                                onClick = { showDebugDialog = false }
-                            ) {
-                                Text(text = stringResource(R.string.general_close))
-                            }
+                            Text(text = stringResource(R.string.general_close))
                         }
                     }
                 }
@@ -310,14 +298,13 @@ fun PermissionsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
-                .padding(horizontal = 24.dp)
-                .padding(top = 24.dp, bottom = 16.dp)
+                .padding(horizontal = 16.dp)
+                .padding(top = 12.dp, bottom = 16.dp)
         ) {
             // Header
             Text(
                 text = stringResource(R.string.permissions_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.displaySmall
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -326,14 +313,14 @@ fun PermissionsContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Scrollable permission cards
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 PermissionCard(
                     label = stringResource(R.string.permission_shizuku_label),
@@ -395,7 +382,7 @@ fun PermissionsContent(
                 ) { selectedCallDetectionMode ->
                     // Child-Column required so cards don't show on top of each other
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         // Show the required permissions for the selected call detection mode
                         selectedCallDetectionMode.requiredPermissions.forEach { currentPermission ->
@@ -451,31 +438,27 @@ private fun PermissionCard(
     statusOverride: String? = null,
     iconOverride: ImageVector? = null
 ) {
-    // Animate the background container color smoothly
     val containerColor by animateColorAsState(
-        targetValue = if (granted) {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        } else {
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f)
-        },
-        animationSpec = tween(durationMillis = 500),
+        targetValue = MaterialTheme.colorScheme.surface,
+        animationSpec = tween(durationMillis = 250),
         label = "cardBackgroundColor"
     )
 
-    // Animate the status/icon color
     val statusColor by animateColorAsState(
         targetValue = if (granted) {
             MaterialTheme.colorScheme.primary
         } else {
             MaterialTheme.colorScheme.error
         },
-        animationSpec = tween(durationMillis = 600),
+        animationSpec = tween(durationMillis = 250),
         label = "cardStatusColor"
     )
 
-    ElevatedCard(
-        colors = CardDefaults.elevatedCardColors(containerColor = containerColor),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+    Surface(
+        color = containerColor,
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 0.dp,
+        shadowElevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         ListItem(
@@ -486,7 +469,12 @@ private fun PermissionCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(iconOverride ?: Icons.Default.Adb, null, Modifier.size(20.dp))
+                    Icon(
+                        iconOverride ?: Icons.Default.Adb,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Text(label, fontWeight = FontWeight.SemiBold)
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -495,13 +483,13 @@ private fun PermissionCard(
                         imageVector = if (granted) Icons.Default.CheckCircle else Icons.Default.ErrorOutline,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = statusColor // Used the animated color here
+                        tint = statusColor
                     )
                     Text(
                         text = statusOverride ?: if (granted) stringResource(R.string.permissions_status_granted) else stringResource(R.string.permissions_status_required),
                         style = MaterialTheme.typography.labelMedium,
-                        color = statusColor, // Used the animated color here
-                        fontWeight = FontWeight.Bold
+                        color = statusColor,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             },

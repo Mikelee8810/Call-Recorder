@@ -19,6 +19,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.kitsumed.shizucallrecorder.data.AppPreferences
 import com.kitsumed.shizucallrecorder.data.call.CallDirection
+import com.kitsumed.shizucallrecorder.data.recordings.LegacyRecordingMigrator
 import com.kitsumed.shizucallrecorder.data.recordings.RecordingItem
 import com.kitsumed.shizucallrecorder.data.recordings.RecordingsRepository
 import com.kitsumed.shizucallrecorder.data.recordings.RetentionPolicyEnforcer
@@ -117,18 +118,34 @@ class RecordingsViewModel(application: Application) : AndroidViewModel(applicati
 
     private var player: ExoPlayer? = null
     private var progressJob: Job? = null
+    private var refreshJob: Job? = null
     private var loadedItems: List<RecordingListItem> = emptyList()
 
     /** Re-scans the recordings folder, resolves contact names, applies retention, then re-applies the current filter. */
     fun refresh() {
+        if (refreshJob?.isActive == true) return
+
         val folderUri = preferences.getRecordingFolderUri()
         if (folderUri == null || !SafHelper.isFolderValid(appContext, folderUri)) {
             _uiState.value = RecordingsUiState.NoFolderSelected
             return
         }
         _uiState.value = RecordingsUiState.Loading
-        viewModelScope.launch {
+        refreshJob = viewModelScope.launch {
             try {
+                val migration = LegacyRecordingMigrator.migrate(appContext, folderUri)
+                if (migration.pathChanges.isNotEmpty()) {
+                    val starred = preferences.getStarredRecordings().toMutableSet()
+                    var changed = false
+                    for ((oldPath, newPath) in migration.pathChanges) {
+                        if (starred.remove(oldPath)) {
+                            starred.add(newPath)
+                            changed = true
+                        }
+                    }
+                    if (changed) preferences.setStarredRecordings(starred)
+                }
+
                 val scanned = RecordingsRepository.listRecordings(appContext, folderUri)
                 val kept = RetentionPolicyEnforcer.enforce(appContext, preferences, scanned)
 

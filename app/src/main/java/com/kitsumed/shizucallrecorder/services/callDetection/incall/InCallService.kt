@@ -129,8 +129,18 @@ class InCallService : InCallService() {
             return
         }
         val telecomManager = this.getSystemService(TELECOM_SERVICE) as? TelecomManager
-        // Name of the app package responsible for this call (e.g. system dialer, default dialer, or a third-party app)
-        val packageName = call.details.accountHandle.componentName.packageName
+        // Name of the app package responsible for this call (e.g. system dialer, default dialer, or a third-party app).
+        // Some OEM/VoIP call implementations can expose a null PhoneAccountHandle outside
+        // STATE_SELECT_PHONE_ACCOUNT, so never let that crash call detection.
+        val details = call.details
+        val packageName = details.accountHandle?.componentName?.packageName
+            ?: if (details.hasProperty(Call.Details.PROPERTY_SELF_MANAGED) ||
+                details.hasProperty(Call.Details.PROPERTY_VOIP_AUDIO_MODE)
+            ) {
+                "unknown.voip"
+            } else {
+                telecomManager?.defaultDialerPackage ?: "com.android.phone"
+            }
         val isCallFromSystemDialer = packageName == telecomManager?.systemDialerPackage ||
                 packageName == telecomManager?.defaultDialerPackage || // Could be a third-party dialer, but it also means it handle carriers calls.
                 packageName == "com.android.phone"
@@ -148,7 +158,6 @@ class InCallService : InCallService() {
             if (isPipelineExecuted) return
             isPipelineExecuted = true
 
-            val details = call.details
             val rawNumber = details.handle?.schemeSpecificPart ?: ""
 
             val direction = when (details.callDirection) {

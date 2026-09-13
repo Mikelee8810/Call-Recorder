@@ -16,6 +16,8 @@ import com.kitsumed.shizucallrecorder.data.call.CallDirection
 import com.kitsumed.shizucallrecorder.utils.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * Reads the list of saved recordings directly from the user-chosen SAF folder (there is no
@@ -32,6 +34,7 @@ object RecordingsRepository {
     /** Matches a standalone "in"/"out"/"incoming"/"outgoing" token surrounded by separators. */
     private val INCOMING_TOKEN_REGEX = Regex("""(?:^|[_\-.])(?:in|incoming)(?:$|[_\-.])""", RegexOption.IGNORE_CASE)
     private val OUTGOING_TOKEN_REGEX = Regex("""(?:^|[_\-.])(?:out|outgoing)(?:$|[_\-.])""", RegexOption.IGNORE_CASE)
+    private val RECORDING_TIMESTAMP_REGEX = Regex("""\d{8}_\d{6}\.\d{3}[+-]\d{4}""")
 
     /**
      * Recursively lists every audio file under [folderUri], newest first.
@@ -61,7 +64,7 @@ object RecordingsRepository {
                         uri = file.uri,
                         displayName = name,
                         relativePath = if (relativePath.isEmpty()) name else "$relativePath/$name",
-                        timestampMillis = file.lastModified(),
+                        timestampMillis = extractRecordingTimestamp(name) ?: file.lastModified(),
                         durationMillis = duration,
                         phoneNumber = extractPhoneNumber(name),
                         direction = extractDirection(name),
@@ -99,6 +102,20 @@ object RecordingsRepository {
         INCOMING_TOKEN_REGEX.containsMatchIn(fileName) -> CallDirection.INCOMING
         OUTGOING_TOKEN_REGEX.containsMatchIn(fileName) -> CallDirection.OUTGOING
         else -> null
+    }
+
+    /**
+     * New and legacy default filenames both carry the call's original timestamp. Prefer it to
+     * filesystem last-modified time so one-time format conversion does not make old calls look new.
+     */
+    private fun extractRecordingTimestamp(fileName: String): Long? {
+        val token = RECORDING_TIMESTAMP_REGEX.find(fileName)?.value ?: return null
+        return try {
+            SimpleDateFormat("yyyyMMdd_HHmmss.SSSZ", Locale.CANADA).apply { isLenient = false }
+                .parse(token)?.time
+        } catch (_: Exception) {
+            null
+        }
     }
 
     /**

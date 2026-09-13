@@ -115,6 +115,22 @@
                 android:value="Call recording: captures and write audio stream during phone calls via Shizuku." />
         </service>
 
+        <service
+            android:name=".services.backup.GoogleDriveBackupJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service
+            android:name=".services.watchdog.RecorderKeepAliveService"
+            android:directBootAware="true"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps call-detection and recorder readiness active between calls and after process recovery." />
+        </service>
+
         <receiver
             android:name=".services.callDetection.phoneState.PhoneStateReceiver"
             android:enabled="true"
@@ -126,10 +142,14 @@
 
         <receiver
             android:name=".integrations.shizuku.ShizukuWatchdogReceiver"
+            android:directBootAware="true"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

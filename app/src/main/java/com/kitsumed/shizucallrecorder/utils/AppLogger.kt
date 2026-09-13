@@ -273,7 +273,7 @@ object AppLogger {
         val prefs = AppPreferences(context)
         context.contentResolver.openOutputStream(destinationUri, "w")?.use { outputStream ->
             PrintWriter(OutputStreamWriter(outputStream, Charsets.UTF_8)).use { writer ->
-                writer.println("=== ShizuCallRecorder AppLogger Export ===")
+                writer.println("=== Call Recorder Debug Export ===")
                 writer.println("Generated: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.CANADA).format(Date())}")
                 writer.println("App Version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                 writer.println("Shizuku Supported Server API: ${Shizuku.getLatestServiceVersion()}")

@@ -30,7 +30,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -61,7 +60,6 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.kitsumed.shizucallrecorder.AppUrls
 import com.kitsumed.shizucallrecorder.BuildConfig
 import com.kitsumed.shizucallrecorder.R
 import com.kitsumed.shizucallrecorder.ui.theme.ShizuCallRecorderTheme
@@ -119,24 +117,26 @@ fun DisclaimerScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
             // Title
             Text(
                 text = stringResource(R.string.disclaimer_title),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.displaySmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            // Introduction paragraph with a hyperlinked "Wiki" keyword
-            val links = mapOf(
-                stringResource(R.string.disclaimer_wiki_link_KEYWORD) to AppUrls.GITHUB_WIKI
+            Text(
+                text = stringResource(R.string.disclaimer_introduction),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            HyperlinkText(stringResource(R.string.disclaimer_introduction), links)
 
             Spacer(modifier = Modifier.height(1.dp))
 
-            // Elevated card gives visual depth to the scrollable disclaimer body.
-            ElevatedCard(
+            Surface(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp,
+                shadowElevation = 5.dp
             ) {
                 SelectionContainer {
                     Text(

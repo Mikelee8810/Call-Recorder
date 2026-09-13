@@ -5,17 +5,15 @@
     <string name="general_ok">OK</string>
     <string name="general_cancel">Abbrechen</string>
     <string name="general_settings">Einstellungen</string>
-    <string name="general_licenses">Lizenzen</string>
     <string name="general_record">Aufnehmen</string>
     <string name="general_pause">Pausieren</string>
     <string name="general_resume">Fortsetzen</string>
     <string name="general_incoming">eingehend</string>
     <string name="general_outgoing">ausgehend</string>
     <string name="general_system_limitation">Systemeinschränkung</string>
-    <string name="general_system_limitation_message">ShizuCallRecorder wird nicht auf diesem Gerät funktionieren, da Ihre Shell-Anwendung nicht die erforderlichen Berechtigungen hat:\n\n%1$s\n\nDieses Problem kann von Ihnen nicht behoben werden. Die App kann auf Ihrem Gerät nicht funktionieren und wird jetzt geschlossen.</string>
-    <string name="disclaimer_title">Willkommen bei ShizuCallRecorder</string>
-    <string name="disclaimer_wiki_link_KEYWORD">Wiki</string>
-    <string name="disclaimer_introduction">Bitte öffnen Sie die Einrichtungsanweisungen auf unserem Wiki, bevor Sie fortfahren. Anschließend lesen Sie den Haftungsausschluss unten.</string>
+    <string name="general_system_limitation_message">Call Recorder wird nicht auf diesem Gerät funktionieren, da Ihre Shell-Anwendung nicht die erforderlichen Berechtigungen hat:\n\n%1$s\n\nDieses Problem kann von Ihnen nicht behoben werden. Die App kann auf Ihrem Gerät nicht funktionieren und wird jetzt geschlossen.</string>
+    <string name="disclaimer_title">Willkommen bei Call Recorder</string>
+    <string name="disclaimer_introduction">Bitte lesen Sie vor dem Fortfahren den nachstehenden Hinweis zur Aufzeichnung.</string>
     <string name="disclaimer_checkbox_label">Ich habe den Haftungsausschluss gelesen und verstehe die rechtlichen Anforderungen, Verantwortungen und technischen Einschränkungen dieser Anwendung.</string>
     <string name="disclaimer_wait">Warten Sie %1$ds</string>
     <string name="disclaimer_must_read">Sie müssen den Haftungsausschluss lesen.</string>
@@ -38,8 +36,7 @@
     <string name="settings_section_debug">Debug-Optionen</string>
     <string name="settings_section_security">Sicherheit</string>
     <string name="settings_shizuku_auto_manage">Shizuku verwalten</string>
-    <string name="settings_shizuku_auto_manage_desc">Shizuku automatisch starten und stoppen</string>
-    <string name="settings_shizuku_auth_key">Shizuku Intents Authentifizierungsschlüssel</string>
+    <string name="settings_shizuku_auto_manage_desc">Shizuku bei Bedarf automatisch starten. Die App stoppt Shizuku niemals automatisch.</string>
     <string name="settings_shizuku_start_on_record">Nur während der Aufnahme starten</string>
     <string name="settings_tap_to_select_folder">Tippen, um Ordner zu wählen...</string>
     <string name="settings_recording_folder_label">Aufnahmeordner</string>
@@ -70,13 +67,10 @@
     <string name="settings_debug_logging_enabled">Logging aktivieren</string>
     <string name="settings_debug_logging_enabled_description">Um einen Fehler zu melden, aktivieren Sie diese Einstellung, starten Sie die App neu und reproduzieren die das Problem.</string>
     <string name="settings_debug_logging_title">Schritte zur Fehlermeldung</string>
-    <string name="settings_debug_logging_steps">1. Überprüfen Sie, ob Ihr Problem bereits auf GitHub gemeldet wurde; falls nicht, fahren Sie fort.\n 2. Reproduzieren Sie den Fehler, während die Log-Aufzeichnung aktiviert ist.­­\n 3. Tippen Sie unten auf „Bericht erstellen“, um die Logs auf Ihrem Smartphone zu speichern.\n 4. Tippen Sie auf „Auf GitHub melden“, um ein neues Issue zu eröffnen, füllen Sie die Felder aus und fügen Sie die Log-Datei bei.</string>
     <string name="settings_debug_logging_step_warning">Bitte überprüfen Sie die generierte Datei vor dem Teilen auf sensible Informationen. Deaktivieren Sie die Log-Aufzeichnung, sobald Sie fertig sind.</string>
     <string name="settings_debug_logging_step_warning_no_redaction">⚠️ Debug-Modus ist aktiv. Log-Redaktion ist deaktiviert.</string>
     <string name="settings_debug_logging_generate_report">Bericht generieren</string>
-    <string name="settings_debug_logging_report_on_github">Auf GitHub melden</string>
     <string name="settings_debug_mode">Debug-Modus aktivieren</string>
-    <string name="settings_view_licenses">Lizenzen ansehen</string>
     <string name="contact_search_hint">Nach Name oder Nummer suchen...</string>
     <string name="recording_standby_notification_title">Anruf läuft</string>
     <string name="recording_notification_cross_country_tip">🌐International</string>
@@ -99,7 +93,6 @@
     <string name="recording_error_shizuku_disconnected_unexpectedly">Shizuku hat die Verbindung unerwartet getrennt, wodurch der Aufnahmeprozess gestoppt wurde. (Der Shizuku-Server-Prozess wurde beendet.)</string>
     <string name="recording_shizuku_not_started">Der Shizuku-Serverprozess wurde beendet. Bitte starten Sie Shizuku und stellen Sie sicher, dass es jederzeit ausgeführt werden kann, wenn die App Audio aufnehmen möchte.</string>
     <string name="recording_shizuku_permission_denied">Bitte erlauben Sie der Anwendung, Shizuku zu verwenden. Die Berechtigung wurde verweigert.</string>
-    <string name="recording_shizuku_auth_key_missing">Der Authentifizierungsschlüssel für Shizuku Intents fehlt. Bitte geben Sie ihn in den App-Einstellungen ein.</string>
     <string name="permission_notifications_description">Wird für den Aufnahmestatus und Fehlerbenachrichtigungen verwendet.</string>
     <string name="permission_contacts_description">Wird zum Filtern bekannter Kontakte für Ignorierregeln verwendet.</string>
     <string name="permission_phone_state_description">Erforderlich, um zu erkennen, wann ein Anruf startet und endet.</string>
@@ -126,8 +119,4 @@
     <string name="general_share">Teilen</string>
     <string name="general_delete">Löschen</string>
     <string name="general_deleted">gelöscht</string>
-    <string name="sponsor_title">Das Projekt unterstützen</string>
-    <string name="sponsor_days_used">Sie benutzen ShizuCallRecorder seit %1$d Tagen!</string>
-    <string name="sponsor_way_to_help">Wie Sie helfen können:</string>
-    <string name="sponsor_way_github_sponsor_title">Werden Sie GitHub Sponsor</string>
 </resources>

@@ -17,101 +17,86 @@ import androidx.compose.ui.unit.sp
 import com.kitsumed.shizucallrecorder.R
 
 /**
- * Display/headline family - Space Grotesk, a distinctive geometric-technical typeface used for
- * durations, timestamps and headers. Bundled locally as a variable font (single .ttf, multiple
- * [Font] entries mapped to weights along its `wght` axis) so it works on de-Googled/F-Droid
- * builds with zero Google Play Services dependency, unlike Compose's downloadable-fonts API.
- * Licensed under the SIL Open Font License 1.1 - see assets/font_licenses/space_grotesk_OFL.txt.
- */
-private val SpaceGrotesk = FontFamily(
-    Font(R.font.space_grotesk, FontWeight.Normal),
-    Font(R.font.space_grotesk, FontWeight.Medium),
-    Font(R.font.space_grotesk, FontWeight.SemiBold),
-    Font(R.font.space_grotesk, FontWeight.Bold)
-)
-
-/**
- * Body/label family - Manrope, a warm rounded-geometric sans chosen specifically to avoid the
- * generic Inter/Roboto/Arial default look while staying highly readable at small sizes. Same
- * bundling approach and license as [SpaceGrotesk] - see assets/font_licenses/manrope_OFL.txt.
+ * Manrope is bundled locally and used across the hierarchy. Tight tracking and iOS-like sizes
+ * keep the interface close to SF Pro's rhythm without bundling Apple's proprietary typeface.
  */
 private val Manrope = FontFamily(
-    Font(R.font.manrope, FontWeight.Normal),
-    Font(R.font.manrope, FontWeight.Medium),
-    Font(R.font.manrope, FontWeight.SemiBold),
-    Font(R.font.manrope, FontWeight.Bold)
+    Font(R.font.manrope_regular, FontWeight.Normal),
+    Font(R.font.manrope_medium, FontWeight.Medium),
+    Font(R.font.manrope_semibold, FontWeight.SemiBold),
+    Font(R.font.manrope_bold, FontWeight.Bold)
 )
 
 val Typography = Typography(
     displayLarge = TextStyle(
-        fontFamily = SpaceGrotesk,
+        fontFamily = Manrope,
         fontWeight = FontWeight.Bold,
-        fontSize = 48.sp,
-        lineHeight = 54.sp,
-        letterSpacing = (-0.5).sp
+        fontSize = 40.sp,
+        lineHeight = 46.sp,
+        letterSpacing = (-0.8).sp
     ),
     displayMedium = TextStyle(
-        fontFamily = SpaceGrotesk,
+        fontFamily = Manrope,
         fontWeight = FontWeight.Bold,
-        fontSize = 38.sp,
-        lineHeight = 44.sp,
-        letterSpacing = (-0.3).sp
+        fontSize = 36.sp,
+        lineHeight = 42.sp,
+        letterSpacing = (-0.7).sp
     ),
     displaySmall = TextStyle(
-        fontFamily = SpaceGrotesk,
+        fontFamily = Manrope,
         fontWeight = FontWeight.Bold,
-        fontSize = 30.sp,
-        lineHeight = 36.sp,
-        letterSpacing = (-0.2).sp
+        fontSize = 34.sp,
+        lineHeight = 41.sp,
+        letterSpacing = (-0.6).sp
     ),
     headlineLarge = TextStyle(
-        fontFamily = SpaceGrotesk,
+        fontFamily = Manrope,
         fontWeight = FontWeight.SemiBold,
         fontSize = 28.sp,
         lineHeight = 34.sp,
-        letterSpacing = (-0.1).sp
+        letterSpacing = (-0.4).sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = SpaceGrotesk,
+        fontFamily = Manrope,
         fontWeight = FontWeight.SemiBold,
         fontSize = 24.sp,
         lineHeight = 30.sp,
-        letterSpacing = 0.sp
+        letterSpacing = (-0.3).sp
     ),
     headlineSmall = TextStyle(
-        fontFamily = SpaceGrotesk,
+        fontFamily = Manrope,
         fontWeight = FontWeight.SemiBold,
         fontSize = 21.sp,
         lineHeight = 27.sp,
-        letterSpacing = 0.sp
+        letterSpacing = (-0.2).sp
     ),
     titleLarge = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 19.sp,
-        lineHeight = 25.sp,
-        letterSpacing = 0.sp
+        fontFamily = Manrope,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = (-0.25).sp
     ),
     titleMedium = TextStyle(
         fontFamily = Manrope,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 16.sp,
+        fontSize = 17.sp,
         lineHeight = 22.sp,
-        letterSpacing = 0.1.sp
+        letterSpacing = (-0.1).sp
     ),
     titleSmall = TextStyle(
         fontFamily = Manrope,
-        fontWeight = FontWeight.Bold,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.8.sp // Gentle tracking for small section labels — legible, not shouty.
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.4.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = Manrope,
         fontWeight = FontWeight.Normal,
         fontSize = 17.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.15.sp
+        lineHeight = 22.sp,
+        letterSpacing = 0.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = Manrope,

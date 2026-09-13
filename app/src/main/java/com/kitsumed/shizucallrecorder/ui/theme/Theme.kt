@@ -25,43 +25,36 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
-/**
- * Light theme — the hero/default look: a warm cream ground (never sterile white) with a single
- * confident burnt-amber ("ember") accent. Individual chrome pieces (top bars, the now-playing
- * card, primary buttons) deliberately borrow the warm-charcoal palette for contrast and punch,
- * the way Linear/Notion mix a light canvas with confidently dark chrome — see
- * `ui/common/AppBackground.kt` and the "now playing" styling in `RecordingsScreen.kt`.
- */
 private val LightColorScheme = lightColorScheme(
-    primary = EmberDeep,
-    onPrimary = OnEmberDeep,
-    primaryContainer = EmberContainerLight,
-    onPrimaryContainer = EmberDeep,
+    primary = IOSBlue,
+    onPrimary = IOSCell,
+    primaryContainer = IOSBlueContainerLight,
+    onPrimaryContainer = IOSBlue,
 
-    secondary = TextOnCreamMuted,
-    onSecondary = CreamSurface,
-    secondaryContainer = CreamSurfaceHigh,
-    onSecondaryContainer = TextOnCream,
+    secondary = IOSSecondaryLabel,
+    onSecondary = IOSCell,
+    secondaryContainer = IOSSecondarySurface,
+    onSecondaryContainer = IOSLabel,
 
-    tertiary = EmberDeep,
-    onTertiary = OnEmberDeep,
-    tertiaryContainer = EmberContainerLight,
-    onTertiaryContainer = EmberDeep,
+    tertiary = IOSBlue,
+    onTertiary = IOSCell,
+    tertiaryContainer = IOSBlueContainerLight,
+    onTertiaryContainer = IOSBlue,
 
-    background = CreamGround,
-    onBackground = TextOnCream,
+    background = IOSGroupedBackground,
+    onBackground = IOSLabel,
 
-    surface = CreamSurface,
-    onSurface = TextOnCream,
-    surfaceVariant = CreamSurfaceHigh,
-    onSurfaceVariant = TextOnCreamMuted,
-    surfaceContainer = CreamSurface,
-    surfaceContainerLow = CreamGround,
-    surfaceContainerHigh = CreamSurfaceHigh,
-    surfaceContainerHighest = CreamSurfaceHigh,
+    surface = IOSCell,
+    onSurface = IOSLabel,
+    surfaceVariant = IOSSecondarySurface,
+    onSurfaceVariant = IOSSecondaryLabel,
+    surfaceContainer = IOSCell,
+    surfaceContainerLow = IOSGroupedBackground,
+    surfaceContainerHigh = IOSSecondarySurface,
+    surfaceContainerHighest = IOSTertiarySurface,
 
-    outline = CreamOutline,
-    outlineVariant = CreamOutline,
+    outline = IOSSeparator,
+    outlineVariant = IOSSeparator,
 
     error = RecordingRed,
     onError = OnRecordingRed,
@@ -69,42 +62,38 @@ private val LightColorScheme = lightColorScheme(
     onErrorContainer = RecordingRed
 )
 
-/**
- * Dark theme — a fully-considered warm-charcoal secondary (not a retrofit): same ember accent
- * and same product identity, just inverted for users who prefer or whose system requests it.
- */
 private val DarkColorScheme = darkColorScheme(
-    primary = EmberBright,
-    onPrimary = OnEmberBright,
-    primaryContainer = EmberContainerDark,
-    onPrimaryContainer = EmberBright,
+    primary = IOSBlueDark,
+    onPrimary = IOSDarkLabel,
+    primaryContainer = IOSBlueContainerDark,
+    onPrimaryContainer = IOSBlueDark,
 
-    secondary = TextOnCharcoalMuted,
-    onSecondary = CharcoalGround,
-    secondaryContainer = CharcoalSurfaceHigh,
-    onSecondaryContainer = TextOnCharcoal,
+    secondary = IOSDarkSecondaryLabel,
+    onSecondary = IOSDarkLabel,
+    secondaryContainer = IOSDarkSecondarySurface,
+    onSecondaryContainer = IOSDarkLabel,
 
-    tertiary = EmberBright,
-    onTertiary = OnEmberBright,
-    tertiaryContainer = EmberContainerDark,
-    onTertiaryContainer = EmberBright,
+    tertiary = IOSBlueDark,
+    onTertiary = IOSDarkLabel,
+    tertiaryContainer = IOSBlueContainerDark,
+    onTertiaryContainer = IOSBlueDark,
 
-    background = CharcoalGround,
-    onBackground = TextOnCharcoal,
+    background = IOSDarkBackground,
+    onBackground = IOSDarkLabel,
 
-    surface = CharcoalSurface,
-    onSurface = TextOnCharcoal,
-    surfaceVariant = CharcoalSurfaceHigh,
-    onSurfaceVariant = TextOnCharcoalMuted,
-    surfaceContainer = CharcoalSurface,
-    surfaceContainerLow = CharcoalGround,
-    surfaceContainerHigh = CharcoalSurfaceHigh,
-    surfaceContainerHighest = CharcoalSurfaceHigh,
+    surface = IOSDarkCell,
+    onSurface = IOSDarkLabel,
+    surfaceVariant = IOSDarkSecondarySurface,
+    onSurfaceVariant = IOSDarkSecondaryLabel,
+    surfaceContainer = IOSDarkCell,
+    surfaceContainerLow = IOSDarkBackground,
+    surfaceContainerHigh = IOSDarkSecondarySurface,
+    surfaceContainerHighest = IOSDarkTertiarySurface,
 
-    outline = CharcoalOutline,
-    outlineVariant = CharcoalOutline,
+    outline = IOSDarkSeparator,
+    outlineVariant = IOSDarkSeparator,
 
-    error = RecordingRed,
+    error = RecordingRedDark,
     onError = OnRecordingRed,
     errorContainer = RecordingRedContainerDark,
     onErrorContainer = OnRecordingRed
@@ -116,11 +105,11 @@ private val DarkColorScheme = darkColorScheme(
  * favoring restraint over a novelty shape (no cut corners, no sharp mixed geometry).
  */
 val AppShapes = Shapes(
-    extraSmall = RoundedCornerShape(10.dp),
-    small = RoundedCornerShape(14.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(26.dp),
-    extraLarge = RoundedCornerShape(32.dp)
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(20.dp)
 )
 
 @Composable
