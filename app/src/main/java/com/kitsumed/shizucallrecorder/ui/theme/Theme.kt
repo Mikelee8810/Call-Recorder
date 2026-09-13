@@ -11,7 +11,9 @@ package com.kitsumed.shizucallrecorder.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -20,44 +22,101 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Green80,
-    onPrimary = DeepDarkGreen, // Dark text on light-green buttons
-    primaryContainer = GreenContainerDark,
-    onPrimaryContainer = GreenContainerLight,
+private val LightColorScheme = lightColorScheme(
+    primary = IOSBlue,
+    onPrimary = IOSCell,
+    primaryContainer = IOSBlueContainerLight,
+    onPrimaryContainer = IOSBlue,
 
-    secondary = GreenGrey80,
-    onSecondary = DarkGreyGreen,
+    secondary = IOSSecondaryLabel,
+    onSecondary = IOSCell,
+    secondaryContainer = IOSSecondarySurface,
+    onSecondaryContainer = IOSLabel,
 
-    tertiary = AccentGreen80,
-    onTertiary = AccentGreenDark,
+    tertiary = IOSBlue,
+    onTertiary = IOSCell,
+    tertiaryContainer = IOSBlueContainerLight,
+    onTertiaryContainer = IOSBlue,
 
-    surface = DarkSurface,
-    onSurface = OffWhiteText,
-    outline = GreyGreenOutline
+    background = IOSGroupedBackground,
+    onBackground = IOSLabel,
+
+    surface = IOSCell,
+    onSurface = IOSLabel,
+    surfaceVariant = IOSSecondarySurface,
+    onSurfaceVariant = IOSSecondaryLabel,
+    surfaceContainer = IOSCell,
+    surfaceContainerLow = IOSGroupedBackground,
+    surfaceContainerHigh = IOSSecondarySurface,
+    surfaceContainerHighest = IOSTertiarySurface,
+
+    outline = IOSSeparator,
+    outlineVariant = IOSSeparator,
+
+    error = RecordingRed,
+    onError = OnRecordingRed,
+    errorContainer = RecordingRedContainerLight,
+    onErrorContainer = RecordingRed
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Green40,
-    onPrimary = White, // White text on dark-green buttons
-    primaryContainer = GreenContainerLight,
-    onPrimaryContainer = VeryDarkForest,
+private val DarkColorScheme = darkColorScheme(
+    primary = IOSBlueDark,
+    onPrimary = IOSDarkLabel,
+    primaryContainer = IOSBlueContainerDark,
+    onPrimaryContainer = IOSBlueDark,
 
-    secondary = GreenGrey40,
-    onSecondary = White,
+    secondary = IOSDarkSecondaryLabel,
+    onSecondary = IOSDarkLabel,
+    secondaryContainer = IOSDarkSecondarySurface,
+    onSecondaryContainer = IOSDarkLabel,
 
-    surface = LightSurface,
-    onSurface = NearBlackText,
-    outline = GreyGreenOutline
+    tertiary = IOSBlueDark,
+    onTertiary = IOSDarkLabel,
+    tertiaryContainer = IOSBlueContainerDark,
+    onTertiaryContainer = IOSBlueDark,
+
+    background = IOSDarkBackground,
+    onBackground = IOSDarkLabel,
+
+    surface = IOSDarkCell,
+    onSurface = IOSDarkLabel,
+    surfaceVariant = IOSDarkSecondarySurface,
+    onSurfaceVariant = IOSDarkSecondaryLabel,
+    surfaceContainer = IOSDarkCell,
+    surfaceContainerLow = IOSDarkBackground,
+    surfaceContainerHigh = IOSDarkSecondarySurface,
+    surfaceContainerHighest = IOSDarkTertiarySurface,
+
+    outline = IOSDarkSeparator,
+    outlineVariant = IOSDarkSeparator,
+
+    error = RecordingRedDark,
+    onError = OnRecordingRed,
+    errorContainer = RecordingRedContainerDark,
+    onErrorContainer = OnRecordingRed
+)
+
+/**
+ * Custom shape scheme: generous, consistently rounded corners throughout (cards, sheets,
+ * buttons) for the soft, comfortable, iOS-adjacent feel called for in the design direction -
+ * favoring restraint over a novelty shape (no cut corners, no sharp mixed geometry).
+ */
+val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(20.dp)
 )
 
 @Composable
 fun ShizuCallRecorderTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -87,6 +146,7 @@ fun ShizuCallRecorderTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = AppShapes,
         content = content
     )
 }

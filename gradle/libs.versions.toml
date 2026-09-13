@@ -18,6 +18,7 @@ shizuku-provider = "13.1.5"
 # Utility
 aboutlibraries = "14.2.1"
 libphonenumber = "9.0.36"
+media3 = "1.8.0"
 
 [libraries]
 # AndroidX Core & Lifecycle
@@ -51,6 +52,10 @@ aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3",
 
 # Libphonenumber
 libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
+
+# Media3 (in-app playback for recordings)
+androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
+androidx-media3-common = { module = "androidx.media3:media3-common", version.ref = "media3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

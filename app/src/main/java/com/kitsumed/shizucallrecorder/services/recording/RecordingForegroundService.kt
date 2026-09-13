@@ -19,6 +19,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.kitsumed.shizucallrecorder.IShellService
 import com.kitsumed.shizucallrecorder.R
 import com.kitsumed.shizucallrecorder.data.AppPreferences
+import com.kitsumed.shizucallrecorder.services.backup.GoogleDriveBackupScheduler
 import com.kitsumed.shizucallrecorder.data.call.EnrichedCallData
 import com.kitsumed.shizucallrecorder.integrations.shizuku.ShizukuConnectionManager
 import com.kitsumed.shizucallrecorder.utils.AppLogger
@@ -37,6 +38,9 @@ import kotlin.coroutines.cancellation.CancellationException
  */
 class RecordingForegroundService : Service() {
     companion object {
+        /** True while a recording session is active in this process. Read by the Shizuku watchdog before it restarts the process. */
+        @Volatile var isRecordingActive: Boolean = false
+            private set
         // -- Intent action for controlling and initializing the service lifecycle. --
 
         /** Intent action sent to this service to initialize the service and immediately start a new recording session. */
@@ -103,6 +107,7 @@ class RecordingForegroundService : Service() {
         serviceScope.launch(Dispatchers.Main.immediate) { // Use immediate to ensure we get the initial (oldState) value on launch
             var oldState: RecordingServiceState = _serviceState.value
             _serviceState.collect { newState ->
+                isRecordingActive = newState.isRecordingActive
                 if (oldState != newState) {
                     updateNotification()
                     notificationHelper.handleStateChangeToasts(oldState, newState)
@@ -252,19 +257,11 @@ class RecordingForegroundService : Service() {
 
     /**
      * Tries to start the Shizuku server if "Auto-manage Shizuku" is enabled in the user preferences.
-     * If the auth key is missing, shows an error notification and stops the service since we won't be able to record without Shizuku.
      * **This does not check the user preference for if shizuku should only start when recording or directly at standby**.
      */
     private fun tryStartShizukuServer() {
         if (appPreferences.isShizukuAutoManageEnabled()) {
-            val authKey = appPreferences.getShizukuAuthKey()
-            if (authKey.isNotBlank()) {
-                ShizukuConnectionManager.startServer(this, authKey)
-            } else {
-                notificationHelper.showErrorNotification(getString(R.string.recording_shizuku_auth_key_missing))
-                notificationHelper.showToast(getString(R.string.recording_shizuku_auth_key_missing))
-                stopRecordingSessionAndService()
-            }
+            ShizukuConnectionManager.startServer(this)
         }
     }
 
@@ -276,9 +273,8 @@ class RecordingForegroundService : Service() {
         overlayController.hideOverlay()
         stopRecordingSessionAndService()
         shizukuManager.unbind()
-        if (appPreferences.isShizukuAutoManageEnabled() && !appPreferences.isShizukuKeepAliveEnabled()) {
-            ShizukuConnectionManager.stopServer(this, appPreferences.getShizukuAuthKey())
-        }
+        // Deliberately never stops the Shizuku server here: this app may only ever start it
+        // (e.g. before a recording), never stop it, so it stays ready for the next call.
         super.onDestroy()
     }
 
@@ -333,6 +329,12 @@ class RecordingForegroundService : Service() {
 
         // Release all resources held by the recording session, and stop the remote shell service, finalizing the recording file.
         activeSession.release(shellService)
+
+        // Once the container is finalized, queue a durable background copy to the selected
+        // Google Drive folder. JobScheduler handles process death, reboot, and transient network/provider failures.
+        activeSession.currentRecordingUri?.let { recordingUri ->
+            GoogleDriveBackupScheduler.enqueue(applicationContext, recordingUri)
+        }
 
         // If the user has enabled post-recording file actions, show a notification with options.
         if (appPreferences.isPostRecordingFileActionsNotificationEnabled()) {

@@ -1,0 +1,15 @@
+{
+  "uniqueId": "com.kitsumed.shizucallrecorder.font.spacegrotesk",
+  "developers": [
+    {
+      "name": "Florian Karsten",
+      "organisationUrl": "https://github.com/floriankarsten/space-grotesk"
+    }
+  ],
+  "description": "Bundled display typeface used for headers, durations and timestamps.",
+  "name": "Space Grotesk",
+  "website": "https://github.com/floriankarsten/space-grotesk",
+  "licenses": [
+    "space-grotesk-ofl-1.1"
+  ]
+}

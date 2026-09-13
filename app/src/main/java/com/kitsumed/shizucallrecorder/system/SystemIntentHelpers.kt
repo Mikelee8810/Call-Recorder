@@ -77,25 +77,6 @@ fun Context.openShizukuManager() {
     }
 }
 
-/** Opens the project GitHub page in the browser. */
-fun Context.openGithub() {
-    launchSmartIntent(Intent(Intent.ACTION_VIEW).apply { data = AppUrls.GITHUB_REPOSITORY.toUri() })
-}
-
-/** Opens the Github wiki/documentation page in the browser. */
-fun Context.openGithubWiki() {
-    launchSmartIntent(Intent(Intent.ACTION_VIEW).apply { data = AppUrls.GITHUB_WIKI.toUri() })
-}
-
-/** Opens the Github report issue page in the browser. */
-fun Context.openGithubReportIssue() {
-    launchSmartIntent(Intent(Intent.ACTION_VIEW).apply { data = AppUrls.GITHUB_NEW_ISSUE.toUri() })
-}
-
-fun Context.openGithubSponsor() {
-    launchSmartIntent(Intent(Intent.ACTION_VIEW).apply { data = AppUrls.GITHUB_SPONSOR.toUri() })
-}
-
 /**
  * Launches [intent] safely regardless of whether this [Context] is an [Activity] or not.
  *

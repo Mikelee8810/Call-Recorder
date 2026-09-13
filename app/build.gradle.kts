@@ -271,6 +271,10 @@ dependencies {
     // Libphonenumber
     implementation(libs.libphonenumber)
 
+    // Media3 (in-app recordings playback)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.common)
+
     // Shizuku
     implementation(libs.shizukuApi)
     implementation(libs.shizukuProvider)

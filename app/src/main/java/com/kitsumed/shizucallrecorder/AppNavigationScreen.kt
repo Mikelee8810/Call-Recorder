@@ -8,8 +8,10 @@
 
 package com.kitsumed.shizucallrecorder
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -25,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -32,10 +35,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kitsumed.shizucallrecorder.data.AppPreferences
 import com.kitsumed.shizucallrecorder.onboarding.OnboardingStatus
+import com.kitsumed.shizucallrecorder.ui.common.AppBackground
 import com.kitsumed.shizucallrecorder.ui.screens.DisclaimerScreen
 import com.kitsumed.shizucallrecorder.ui.screens.PermissionsScreen
+import com.kitsumed.shizucallrecorder.ui.screens.RecordingsScreen
 import com.kitsumed.shizucallrecorder.ui.screens.SettingsScreen
-import com.kitsumed.shizucallrecorder.ui.screens.SponsorScreen
 import com.kitsumed.shizucallrecorder.ui.theme.ShizuCallRecorderTheme
 import com.kitsumed.shizucallrecorder.ui.viewmodels.AppNavigationViewModel
 import com.kitsumed.shizucallrecorder.ui.viewmodels.SettingsViewModel
@@ -110,58 +114,76 @@ fun AppNavigationScreen() {
         AppPreferences.ThemeMode.DARK   -> true
         AppPreferences.ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
-    val dynamicColor = preferences.isDynamicColorEnabled()
-
     // -------- Show the right screen
-    ShizuCallRecorderTheme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
-        AnimatedContent(
-            targetState = screenState,
-            transitionSpec = {
-                val movingForward = targetState.ordinal > initialState.ordinal
-                // Slide in from the right when moving forward (1), slide out to the left when moving forward (-1).
-                val slideDirection = if (movingForward) 1 else -1
+    ShizuCallRecorderTheme(darkTheme = darkTheme, dynamicColor = false) {
+        AppBackground {
+            AnimatedContent(
+                targetState = screenState,
+                transitionSpec = {
+                    val movingForward = targetState.ordinal > initialState.ordinal
+                    // Slide in from the right when moving forward (1), slide out to the left when moving forward (-1).
+                    val slideDirection = if (movingForward) 1 else -1
 
-                val enterSpec = slideInHorizontally(tween(350)) { width -> width * slideDirection } + fadeIn(tween(350))
-                val exitSpec = slideOutHorizontally(tween(300)) { width -> -width * slideDirection } + fadeOut(tween(300))
+                    // A spring rather than a linear tween: transitions should feel physical/bouncy,
+                    // not mechanical.
+                    val motionSpring = spring<Float>(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)
+                    val offsetSpring = spring<IntOffset>(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)
 
-                enterSpec togetherWith exitSpec
-            },
-            label = "AppScreenNavigationTransition"
-        ) { targetScreenState ->
-            when (targetScreenState) {
-                AppScreen.Disclaimer -> DisclaimerScreen(
-                    onContinue = {
-                        preferences.setDisclaimerAccepted(true)
-                        appNavViewModel.refresh()
-                    }
-                )
+                    val enterSpec = slideInHorizontally(offsetSpring) { width -> width * slideDirection } + fadeIn(motionSpring)
+                    val exitSpec = slideOutHorizontally(offsetSpring) { width -> -width * slideDirection } + fadeOut(motionSpring)
 
-                AppScreen.Permissions -> PermissionsScreen(
-                    status              = onboardingStatus,
-                    onPermissionGranted = { appNavViewModel.refresh() }
-                )
+                    enterSpec togetherWith exitSpec
+                },
+                label = "AppScreenNavigationTransition"
+            ) { targetScreenState ->
+                when (targetScreenState) {
+                    AppScreen.Disclaimer -> DisclaimerScreen(
+                        onContinue = {
+                            preferences.setDisclaimerAccepted(true)
+                            appNavViewModel.refresh()
+                        }
+                    )
 
-                AppScreen.Settings -> {
-                    val lastReminderTime = preferences.getLastForcedReminderSupportProjectTimeInApp()
-                    val currentTime = System.currentTimeMillis()
+                    AppScreen.Permissions -> PermissionsScreen(
+                        status              = onboardingStatus,
+                        onPermissionGranted = { appNavViewModel.refresh() }
+                    )
 
-                    var showSponsorScreen by remember {
-                        // Check if it's been more than a year since the last reminder. 31536000000 ms = 1 year.
-                        mutableStateOf(currentTime - lastReminderTime > 31536000000L)
-                    }
+                    AppScreen.Settings -> {
+                        // The recordings library is the app's home once setup is complete; Settings
+                        // sits one tap away behind the gear icon on that screen, not the other way
+                        // around, since browsing/playing back recordings is the everyday task.
+                        var showSettings by remember { mutableStateOf(false) }
 
-                    if (showSponsorScreen) {
-                        SponsorScreen(onDismiss = {
-                            preferences.setLastForcedReminderSupportProjectTimeInApp(currentTime)
-                            // We also update the notification time since it work by opening the app and then having this logic
-                            // show the sponsor screen. Showing it again after they have already seen it would be annoying.
-                            preferences.setLastForcedReminderSupportProjectTimeNotification(currentTime)
-                            showSponsorScreen = false // Trigger recompose
-                        })
-                    } else {
-                        SettingsScreen(
-                            viewModel = settingsViewModel
-                        )
+                        BackHandler(enabled = showSettings) {
+                            showSettings = false
+                        }
+
+                        AnimatedContent(
+                            targetState = showSettings,
+                            transitionSpec = {
+                                val motionSpring = spring<Float>(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)
+                                val offsetSpring = spring<IntOffset>(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)
+                                val enterSpec = slideInHorizontally(offsetSpring) { width -> width } + fadeIn(motionSpring)
+                                val exitSpec = slideOutHorizontally(offsetSpring) { width -> width } + fadeOut(motionSpring)
+                                if (targetState) {
+                                    enterSpec togetherWith exitSpec
+                                } else {
+                                    (slideInHorizontally(offsetSpring) { width -> -width } + fadeIn(motionSpring)) togetherWith
+                                        (slideOutHorizontally(offsetSpring) { width -> -width } + fadeOut(motionSpring))
+                                }
+                            },
+                            label = "SettingsOverlayTransition"
+                        ) { settingsVisible ->
+                            if (settingsVisible) {
+                                SettingsScreen(
+                                    viewModel = settingsViewModel,
+                                    onBack = { showSettings = false }
+                                )
+                            } else {
+                                RecordingsScreen(onOpenSettings = { showSettings = true })
+                            }
+                        }
                     }
                 }
             }

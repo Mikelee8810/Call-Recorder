@@ -72,12 +72,12 @@ fun RecordingOverlay(
         label = "dotAlpha"
     )
 
-    // Animate the button background color based on recording state
+    // Animate the action surface with the app's blue system accent.
     val buttonBackgroundColor by animateColorAsState(
         targetValue = if (isActivelyRecording)
-            MaterialTheme.colorScheme.errorContainer
+            MaterialTheme.colorScheme.tertiary
         else if (isActivelyPaused)
-            Color.Green.copy(alpha = 0.4f)
+            MaterialTheme.colorScheme.secondaryContainer
         else
             MaterialTheme.colorScheme.primaryContainer,
         animationSpec = tween(durationMillis = 400),
@@ -99,8 +99,8 @@ fun RecordingOverlay(
         modifier = Modifier
             .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 6.dp,
-        shadowElevation = 8.dp
+        tonalElevation = 0.dp,
+        shadowElevation = 5.dp
     ) {
         Row(
             modifier = Modifier
@@ -159,24 +159,26 @@ fun RecordingOverlay(
                         Icon(
                             painter = painterResource(id = targetIconRes),
                             contentDescription = actionButtonDescription,
-                            tint = if (isActivelyRecording)
-                                MaterialTheme.colorScheme.onErrorContainer
-                            else
-                                MaterialTheme.colorScheme.onPrimaryContainer,
+                            tint = when {
+                                isActivelyRecording -> MaterialTheme.colorScheme.onTertiary
+                                isActivelyPaused -> MaterialTheme.colorScheme.onSecondaryContainer
+                                else -> MaterialTheme.colorScheme.onPrimaryContainer
+                            },
                             modifier = Modifier.size(42.dp)
                         )
                     }
                 }
 
-                // Blinking red dot
+                // Blinking "REC" indicator dot, colored with the app's signal accent.
                 if (isActivelyRecording) {
                     Box(
                         modifier = Modifier
                             .size(18.dp)
                             .align(Alignment.TopEnd)
                             .alpha(dotAlpha)
+                            .border(width = 2.dp, color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = CircleShape)
                             .background(
-                                color = Color.Red,
+                                color = MaterialTheme.colorScheme.error,
                                 shape = CircleShape
                             )
                     )

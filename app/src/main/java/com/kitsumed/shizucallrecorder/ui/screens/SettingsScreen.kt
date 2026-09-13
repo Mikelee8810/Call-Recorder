@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Key
@@ -66,8 +67,6 @@ import com.kitsumed.shizucallrecorder.integrations.scrcpy.ScrcpyAudioSource
 import com.kitsumed.shizucallrecorder.integrations.scrcpy.ScrcpyConfig
 import com.kitsumed.shizucallrecorder.services.callDetection.CallDetectionMode
 import com.kitsumed.shizucallrecorder.system.PersistentFolderPickerContract
-import com.kitsumed.shizucallrecorder.system.openGithubReportIssue
-import com.kitsumed.shizucallrecorder.system.openGithubWiki
 import com.kitsumed.shizucallrecorder.system.storage.SafHelper
 import com.kitsumed.shizucallrecorder.system.takePersistableFolderPermission
 import com.kitsumed.shizucallrecorder.ui.common.ContactSelectionDialog
@@ -82,8 +81,6 @@ import com.kitsumed.shizucallrecorder.ui.viewmodels.ContactPickerViewModel
 import com.kitsumed.shizucallrecorder.ui.viewmodels.DebugAction
 import com.kitsumed.shizucallrecorder.ui.viewmodels.SettingsActions
 import com.kitsumed.shizucallrecorder.ui.viewmodels.SettingsViewModel
-import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
-import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.kitsumed.shizucallrecorder.system.permissions.PermissionChecks
 import kotlinx.coroutines.delay
 import org.xmlpull.v1.XmlPullParser
@@ -99,10 +96,11 @@ import androidx.core.net.toUri
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    
+
     // Trigger recomposition when settings change by viewmodel.refresh()
     val updateTrigger by viewModel.updateTrigger.collectAsState()
 
@@ -119,6 +117,17 @@ fun SettingsScreen(
         viewModel.refresh()
     }
 
+    // Google Drive backup destination. The Android document picker exposes Drive as a provider,
+    // so this works without a second Google login flow or app-owned cloud credentials.
+    val driveBackupFolderPickerLauncher = rememberLauncherForActivityResult(PersistentFolderPickerContract()) { uri ->
+        if (uri != null) {
+            context.takePersistableFolderPermission(uri)
+            viewModel.setGoogleDriveBackupFolder(uri)
+        } else {
+            viewModel.refresh()
+        }
+    }
+
     // Export logs picker — creates a new text file and gives us access to write to it, then passes the URI to the viewmodel for writing.
     val exportLogLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri: Uri? ->
         if (uri != null) {
@@ -132,6 +141,7 @@ fun SettingsScreen(
         actions = viewModel,
         contactPickerState = contactPickerState,
         onSelectFolder = { folderPickerLauncher.launch(null) },
+        onSelectDriveBackupFolder = { driveBackupFolderPickerLauncher.launch(null) },
         onOpenContactsIncoming = { contactPickerViewModel.openContactPicker(ContactPickerType.INCOMING) },
         onOpenContactsOutgoing = { contactPickerViewModel.openContactPicker(ContactPickerType.OUTGOING) },
         onConfirmContacts = { lookupIDs ->
@@ -140,7 +150,8 @@ fun SettingsScreen(
             viewModel.refresh()
         },
         onDismissContacts = { contactPickerViewModel.dismissContactPicker() },
-        onExportLogs = { exportLogLauncher.launch("shizucallrecorder_bug_report.log") },
+        onExportLogs = { exportLogLauncher.launch("call_recorder_diagnostic.log") },
+        onBack = onBack,
         modifier = modifier
     )
 }
@@ -153,6 +164,7 @@ fun SettingsScreen(
  * @param actions                Implementation of [SettingsActions] to handle user interaction.
  * @param contactPickerState     Current state of the contact picker dialog.
  * @param onSelectFolder         Called when the user taps the recording-folder row.
+ * @param onSelectDriveBackupFolder Called when the user taps the Google Drive backup-folder row.
  * @param onOpenContactsIncoming Called to open picker for incoming contacts.
  * @param onOpenContactsOutgoing Called to open picker for outgoing contacts.
  * @param onConfirmContacts      Called when contacts are confirmed from the dialog.
@@ -167,33 +179,47 @@ fun SettingsContent(
     actions: SettingsActions,
     contactPickerState: ContactPickerState?,
     onSelectFolder: () -> Unit,
+    onSelectDriveBackupFolder: () -> Unit,
     onOpenContactsIncoming: () -> Unit,
     onOpenContactsOutgoing: () -> Unit,
     onConfirmContacts: (Set<String>) -> Unit,
     onDismissContacts: () -> Unit,
     onExportLogs: () -> Unit,
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier
             .fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = Color.Transparent // The shared AppBackground (drawn by AppNavigationScreen) shows through.
     ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
             // Equivalent to .safeDrawingPadding() but allow UI to extend behind the status bar when scrolling
             contentPadding = WindowInsets.safeDrawing
-                .add(WindowInsets(left = 20.dp, right = 20.dp, top = 0.dp, bottom = 0.dp))
+                .add(WindowInsets(left = 16.dp, right = 16.dp, top = 0.dp, bottom = 0.dp))
                 .asPaddingValues(),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.general_settings),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    modifier = Modifier.padding(top = 8.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(R.string.a11y_back),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Text(
+                        text = stringResource(R.string.general_settings),
+                        style = MaterialTheme.typography.displaySmall
+                    )
+                }
             }
             item { AboutSection(versionString = actions.getAppVersion()) }
             item {
@@ -206,6 +232,8 @@ fun SettingsContent(
                     onOpenContactsOutgoing = onOpenContactsOutgoing
                 )
             }
+            item { RetentionSection(preferences, updateTrigger, actions) }
+            item { DriveBackupSection(preferences, updateTrigger, actions, onSelectDriveBackupFolder) }
             item { AudioSection(preferences, updateTrigger, actions) }
             item { SecuritySection(preferences, updateTrigger, actions) }
             item { VisualSection(preferences, updateTrigger, actions) }
@@ -229,17 +257,59 @@ fun SettingsContent(
     }
 }
 
+@Composable
+private fun DriveBackupSection(
+    preferences: AppPreferences,
+    updateTrigger: Int,
+    actions: SettingsActions,
+    onSelectDriveBackupFolder: () -> Unit
+) {
+    val context = LocalContext.current
+    val backupFolderUri = remember(updateTrigger) { preferences.getGoogleDriveBackupFolderUri() }
+    val backupFolderLabel = remember(updateTrigger) {
+        SafHelper.getFolderDisplayNameOrNull(context, backupFolderUri)
+    }
+    val backupEnabled = remember(updateTrigger) { preferences.isGoogleDriveBackupEnabled() }
+
+    SettingsSection(title = stringResource(R.string.settings_section_backup)) {
+        ToggleListItem(
+            label = stringResource(R.string.settings_google_drive_backup),
+            description = stringResource(R.string.settings_google_drive_backup_description),
+            checked = backupEnabled,
+            enabled = backupFolderUri != null,
+            onCheckedChange = { actions.setGoogleDriveBackupEnabled(it) }
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
+
+        ListItem(
+            modifier = Modifier
+                .clickable { onSelectDriveBackupFolder() }
+                .semantics(mergeDescendants = true) {},
+            headlineContent = { Text(stringResource(R.string.settings_google_drive_folder)) },
+            supportingContent = {
+                Text(
+                    text = backupFolderLabel ?: stringResource(R.string.settings_google_drive_choose_folder),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            trailingContent = {
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null
+                )
+            }
+        )
+    }
+}
+
 // ── Settings sections ──────────────────────────────────────────────────────────────────────
 
-/** Shows the app version, server version, clipboard buttons, and a GitHub link.
- */
+/** Shows the app and bundled server versions. */
 @Composable
 private fun AboutSection(versionString: String) {
-    val context = LocalContext.current
     val serverVersion = ScrcpyConfig.SCRCPY_VERSION
-
-    var showLicensesDialog by remember() { mutableStateOf(false) }
-    var showSponsorScreen by remember() { mutableStateOf(false) }
 
     SettingsSection(title = stringResource(R.string.settings_section_about)) {
         ListItem(
@@ -249,78 +319,6 @@ private fun AboutSection(versionString: String) {
             },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedButton(
-                onClick = { context.openGithubWiki() },
-                modifier = Modifier.weight(1f)
-            ) { Text(stringResource(R.string.settings_open_github_Wiki)) }
-            OutlinedButton(
-                onClick = { showLicensesDialog = true },
-                modifier = Modifier.weight(1f)
-            ) { Text(stringResource(R.string.settings_view_licenses)) }
-        }
-        Button(
-            onClick = { showSponsorScreen = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp)
-        ) { Text(stringResource(R.string.sponsor_title)) }
-    }
-
-    if (showSponsorScreen) {
-        Dialog(
-            onDismissRequest = { showSponsorScreen = false },
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false, // False for edge-to-edge, since our SponsorScreen take full screen
-                decorFitsSystemWindows = false,
-                dismissOnClickOutside = false,
-                dismissOnBackPress = true,
-
-            )
-        ) {
-            SponsorScreen(onDismiss = { showSponsorScreen = false })
-        }
-    }
-
-    // Handle license dialog
-    if (showLicensesDialog) {
-        Dialog(
-            onDismissRequest = { showLicensesDialog = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surface
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.general_licenses),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(16.dp)
-                    )
-
-                    val libraries by produceLibraries(R.raw.aboutlibraries)
-                    LibrariesContainer(libraries,Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                        showAuthor = true, showLicenseBadges = true, showFundingBadges = false, showVersion = true, showDescription = true)
-                    TextButton(
-                        onClick = { showLicensesDialog = false },
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .padding(8.dp)
-                    ) {
-                        Text(stringResource(R.string.general_close))
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -333,7 +331,6 @@ private fun AboutSection(versionString: String) {
 @Composable
 private fun VisualSection(preferences: AppPreferences, updateTrigger: Int, actions: SettingsActions) {
     val currentThemeMode = remember(updateTrigger) { preferences.getThemeMode() }
-    val isDynamicColorEnabled = remember(updateTrigger) { preferences.isDynamicColorEnabled() }
     val isShowToastsEnabled = remember(updateTrigger) { preferences.isShowToastsEnabled() }
     val isRecordingOverlayEnabled = remember(updateTrigger) { preferences.isOverlayEnabled() }
     val context = LocalContext.current
@@ -399,11 +396,6 @@ private fun VisualSection(preferences: AppPreferences, updateTrigger: Int, actio
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
         )
         ToggleListItem(
-            label           = stringResource(R.string.settings_dynamic_color),
-            checked         = isDynamicColorEnabled,
-            onCheckedChange = { actions.setDynamicColorEnabled(it) }
-        )
-        ToggleListItem(
             label           = stringResource(R.string.settings_show_toasts),
             checked         = isShowToastsEnabled,
             onCheckedChange = { actions.setShowToastsEnabled(it) }
@@ -437,8 +429,6 @@ private fun VisualSection(preferences: AppPreferences, updateTrigger: Int, actio
 private fun SecuritySection(preferences: AppPreferences, updateTrigger: Int, actions: SettingsActions) {
     val autoManageShizuku = remember(updateTrigger) { preferences.isShizukuAutoManageEnabled() }
     val shizukuStartOnRecord = remember(updateTrigger) { preferences.isShizukuStartOnRecordEnabled() }
-    val shizukuKeepAlive = remember(updateTrigger) { preferences.isShizukuKeepAliveEnabled() }
-    val shizukuAuthKey = remember(updateTrigger) { preferences.getShizukuAuthKey() }
 
     SettingsSection(title = stringResource(R.string.settings_section_security)) {
         ToggleListItem(
@@ -465,56 +455,11 @@ private fun SecuritySection(preferences: AppPreferences, updateTrigger: Int, act
                     )
         ) {
             Column {
-                var textState by remember(shizukuAuthKey) { mutableStateOf(shizukuAuthKey) }
-                var isFocused by remember { mutableStateOf(false) }
-
-                // Listen for textState updates
-                LaunchedEffect(textState) {
-                    // LaunchedEffect cancels the previous block and restarts when updating too quickly.
-                    delay(100)
-                    if (textState != shizukuAuthKey) {
-                        actions.setShizukuAuthKey(textState)
-                    }
-                }
-
-                OutlinedTextField(
-                    value    = textState,
-                    onValueChange = { textState = it },
-                    label    = { Text(stringResource(R.string.settings_shizuku_auth_key)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
-                        .onFocusChanged { isFocused = it.isFocused },
-                    singleLine = true,
-                    isError = textState.isBlank(),
-                    visualTransformation = if (isFocused) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password, showKeyboardOnFocus = true),
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Key,
-                            contentDescription = null
-                        )
-                    }
-                )
-
-                if (textState.trim().isEmpty()) {
-                    WarningCard(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        message = stringResource(R.string.recording_shizuku_auth_key_missing))
-                }
-
                 ToggleListItem(
                     label           = stringResource(R.string.settings_shizuku_start_on_record),
                     checked         = shizukuStartOnRecord,
                     onCheckedChange = { actions.setShizukuStartOnRecordEnabled(it) },
                     description     = stringResource(R.string.settings_shizuku_start_on_record_desc)
-                )
-
-                ToggleListItem(
-                    label           = stringResource(R.string.settings_shizuku_keep_alive),
-                    checked         = shizukuKeepAlive,
-                    onCheckedChange = { actions.setShizukuKeepAliveEnabled(it) },
-                    description     = stringResource(R.string.settings_shizuku_keep_alive_desc)
                 )
             }
         }
@@ -563,195 +508,204 @@ private fun RecordingSection(
 
     var showFileNameFormatDialog by remember { mutableStateOf(false) }
 
-    SettingsSection(title = stringResource(R.string.settings_section_recording)) {
-        val detectionOptions = CallDetectionMode.entries.map { mode ->
-            OptionItem(
-                key = mode.key,
-                label = stringResource(mode.titleResId),
-                description = stringResource(mode.descriptionResId),
-                // Automatically grays out option if the user device's OS API level is incompatible
-                enabled = mode.isSupportedOnCurrentApi()
+    val detectionOptions = CallDetectionMode.entries.map { mode ->
+        OptionItem(
+            key = mode.key,
+            label = stringResource(mode.titleResId),
+            description = stringResource(mode.descriptionResId),
+            // Automatically grays out option if the user device's OS API level is incompatible.
+            enabled = mode.isSupportedOnCurrentApi()
+        )
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SettingsSectionHeader(stringResource(R.string.settings_section_recording))
+
+        SettingsCard {
+            M3DropdownField(
+                label = stringResource(R.string.settings_call_detection_method),
+                selected = detectionOptions.find { it.key == callDetectionMode.key } ?: detectionOptions.first(),
+                options = detectionOptions,
+                onOptionSelected = { selectedItem ->
+                    val chosenMode = CallDetectionMode.fromKey(selectedItem.key)
+                    actions.setCallDetectionMode(chosenMode)
+                },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
+            )
+
+            AnimatedContent(
+                targetState = callDetectionMode,
+                transitionSpec = {
+                    val enterTransition = fadeIn(tween(300)) + expandVertically(tween(300))
+                    val exitTransition = fadeOut(tween(250)) + shrinkVertically(tween(250))
+                    enterTransition togetherWith exitTransition
+                },
+                label = "CallDetectionModeSettingsTransition"
+            ) { targetMode ->
+                when (targetMode) {
+                    CallDetectionMode.InCallService -> {
+                        ToggleListItem(
+                            label = stringResource(R.string.settings_record_third_party_calls),
+                            description = stringResource(R.string.settings_record_third_party_calls_description),
+                            checked = recordThirdPartyCalls,
+                            onCheckedChange = { actions.setRecordThirdPartyCalls(it) }
+                        )
+                    }
+                    CallDetectionMode.PhoneState -> {
+                        WarningCard(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            title = stringResource(R.string.settings_call_detection_method_warning_title),
+                            message = stringResource(R.string.call_detection_mode_phonestate_limited_support)
+                        )
+                    }
+                }
+            }
+        }
+
+        SettingsCard {
+            ListItem(
+                modifier = Modifier
+                    .clickable { onSelectFolder() }
+                    .semantics(mergeDescendants = true) {},
+                headlineContent = { Text(stringResource(R.string.settings_recording_folder_label)) },
+                supportingContent = {
+                    Text(
+                        text = recordingFolderLabel ?: stringResource(R.string.settings_tap_to_select_folder),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null
+                    )
+                }
+            )
+
+            SettingsDivider()
+
+            ListItem(
+                modifier = Modifier
+                    .clickable { showFileNameFormatDialog = true }
+                    .semantics(mergeDescendants = true) {},
+                headlineContent = { Text(stringResource(R.string.settings_file_name_template)) },
+                supportingContent = {
+                    Text(
+                        text = fileNameFormat,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null
+                    )
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
             )
         }
 
-        M3DropdownField(
-            label = stringResource(R.string.settings_call_detection_method),
-            selected = detectionOptions.find { it.key == callDetectionMode.key } ?: detectionOptions.first(),
-            options = detectionOptions,
-            onOptionSelected = { selectedItem ->
-                val chosenMode = CallDetectionMode.fromKey(selectedItem.key)
-                actions.setCallDetectionMode(chosenMode)
-            },
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
-        )
+        SettingsCard {
+            ToggleListItem(
+                label = stringResource(R.string.settings_post_recording_notification),
+                description = stringResource(R.string.settings_post_recording_notification_description),
+                checked = postRecordingFileNotifications,
+                onCheckedChange = { actions.setPostRecordingFileNotification(it) }
+            )
 
-        AnimatedContent(
-            targetState = callDetectionMode,
-            transitionSpec = {
-                val enterTransition = fadeIn(tween(300)) + expandVertically(tween(300))
-                val exitTransition = fadeOut(tween(250)) + shrinkVertically(tween(250))
+            SettingsDivider()
 
-                enterTransition togetherWith exitTransition
-            },
-            label = "CallDetectionModeSettingsTransition"
-        ) { targetMode ->
-            when (targetMode) {
-                CallDetectionMode.InCallService -> {
+            ToggleListItem(
+                label = stringResource(R.string.settings_vibration_enabled),
+                checked = isVibrationEnabled,
+                onCheckedChange = { actions.setVibrationEnabled(it) }
+            )
+        }
+
+        SettingsCard {
+            ToggleListItem(
+                label = stringResource(R.string.settings_auto_record_incoming),
+                checked = autoRecordIncoming,
+                onCheckedChange = { actions.setAutoRecordIncoming(it) }
+            )
+            AnimatedVisibility(
+                visible = autoRecordIncoming,
+                enter = fadeIn(animationSpec = tween(durationMillis = 500)) +
+                        expandVertically(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            expandFrom = Alignment.Top
+                        ),
+                exit = fadeOut(animationSpec = tween(durationMillis = 450)) +
+                        shrinkVertically(
+                            animationSpec = tween(durationMillis = 450, easing = LinearOutSlowInEasing),
+                            shrinkTowards = Alignment.Top
+                        )
+            ) {
+                Column {
+                    SettingsDivider()
                     ToggleListItem(
-                        label           = stringResource(R.string.settings_record_third_party_calls),
-                        description     = stringResource(R.string.settings_record_third_party_calls_description),
-                        checked         = recordThirdPartyCalls,
-                        onCheckedChange = { actions.setRecordThirdPartyCalls(it) }
+                        label = stringResource(R.string.settings_ignore_anonymous_incoming),
+                        checked = ignoreAnonymousIncoming,
+                        onCheckedChange = { actions.setIgnoreAnonymousIncoming(it) }
                     )
-                }
-                CallDetectionMode.PhoneState -> {
-                    WarningCard(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        title = stringResource(R.string.settings_call_detection_method_warning_title),
-                        message = stringResource(R.string.call_detection_mode_phonestate_limited_support)
+                    ToggleListItem(
+                        label = stringResource(R.string.settings_ignore_cross_country_incoming),
+                        checked = ignoreCrossCountryIncoming,
+                        onCheckedChange = { actions.setIgnoreCrossCountryIncoming(it) },
+                        enabled = ignoreAnonymousIncoming
+                    )
+                    IgnoreContactsOptions(
+                        label = stringResource(R.string.settings_ignore_contacts_incoming),
+                        selectedEnum = ignoreContactsModeIncoming,
+                        selectedCount = ignoredContactsIncomingCount,
+                        onSelected = { actions.setIgnoreContactsModeIncoming(it) },
+                        onSelectContacts = onOpenContactsIncoming
                     )
                 }
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), thickness = 0.5.dp)
-
-        ListItem(
-            modifier = Modifier
-                .clickable { onSelectFolder() }
-                .semantics(mergeDescendants = true) {},
-            headlineContent = { Text(stringResource(R.string.settings_recording_folder_label)) },
-            supportingContent = {
-                Text(
-                    text = recordingFolderLabel ?: stringResource(R.string.settings_tap_to_select_folder),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            },
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            trailingContent = {
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null
-                )
-            },
-        )
-
-        ListItem(
-            modifier = Modifier
-                .clickable { showFileNameFormatDialog = true }
-                .semantics(mergeDescendants = true) {},
-            headlineContent = { Text(stringResource(R.string.settings_file_name_template)) },
-            supportingContent = {
-                Text(
-                    text = fileNameFormat,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            },
-            trailingContent = {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = null
-                )
-            },
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-        )
-
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
-
-        ToggleListItem(
-            label = stringResource(R.string.settings_post_recording_notification),
-            description = stringResource(R.string.settings_post_recording_notification_description),
-            checked = postRecordingFileNotifications,
-            onCheckedChange = { actions.setPostRecordingFileNotification(it) }
-        )
-
-        ToggleListItem(
-            label           = stringResource(R.string.settings_vibration_enabled),
-            checked         = isVibrationEnabled,
-            onCheckedChange = { actions.setVibrationEnabled(it) }
-        )
-
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
-
-        ToggleListItem(
-            label           = stringResource(R.string.settings_auto_record_incoming),
-            checked         = autoRecordIncoming,
-            onCheckedChange = { actions.setAutoRecordIncoming(it) }
-        )
-        AnimatedVisibility(
-            visible = autoRecordIncoming,
-            enter = fadeIn(animationSpec = tween(durationMillis = 500)) +
-                    expandVertically(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
+        SettingsCard {
+            ToggleListItem(
+                label = stringResource(R.string.settings_auto_record_outgoing),
+                checked = autoRecordOutgoing,
+                onCheckedChange = { actions.setAutoRecordOutgoing(it) }
+            )
+            AnimatedVisibility(
+                visible = autoRecordOutgoing,
+                enter = fadeIn(animationSpec = tween(durationMillis = 500)) +
+                        expandVertically(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            expandFrom = Alignment.Top
                         ),
-                        expandFrom = Alignment.Top
-                    ),
-            exit = fadeOut(animationSpec = tween(durationMillis = 450)) +
-                    shrinkVertically(
-                        animationSpec = tween(durationMillis = 450, easing = LinearOutSlowInEasing),
-                        shrinkTowards = Alignment.Top
+                exit = fadeOut(animationSpec = tween(durationMillis = 450)) +
+                        shrinkVertically(
+                            animationSpec = tween(durationMillis = 450, easing = LinearOutSlowInEasing),
+                            shrinkTowards = Alignment.Top
+                        )
+            ) {
+                Column {
+                    SettingsDivider()
+                    ToggleListItem(
+                        label = stringResource(R.string.settings_ignore_cross_country_outgoing),
+                        checked = ignoreCrossCountryOutgoing,
+                        onCheckedChange = { actions.setIgnoreCrossCountryOutgoing(it) }
                     )
-        ) {
-            Column {
-                ToggleListItem(
-                    label           = stringResource(R.string.settings_ignore_anonymous_incoming),
-                    checked         = ignoreAnonymousIncoming,
-                    onCheckedChange = { actions.setIgnoreAnonymousIncoming(it) }
-                )
-                ToggleListItem(
-                    label           = stringResource(R.string.settings_ignore_cross_country_incoming),
-                    checked         = ignoreCrossCountryIncoming,
-                    onCheckedChange = { actions.setIgnoreCrossCountryIncoming(it) },
-                    enabled         = ignoreAnonymousIncoming
-                )
-                IgnoreContactsOptions(
-                    label           = stringResource(R.string.settings_ignore_contacts_incoming),
-                    selectedEnum     = ignoreContactsModeIncoming,
-                    selectedCount    = ignoredContactsIncomingCount,
-                    onSelected      = { actions.setIgnoreContactsModeIncoming(it) },
-                    onSelectContacts = onOpenContactsIncoming
-                )
-            }
-        }
-
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
-
-        ToggleListItem(
-            label           = stringResource(R.string.settings_auto_record_outgoing),
-            checked         = autoRecordOutgoing,
-            onCheckedChange = { actions.setAutoRecordOutgoing(it) }
-        )
-        AnimatedVisibility(
-            visible = autoRecordOutgoing,
-            enter = fadeIn(animationSpec = tween(durationMillis = 500)) +
-                    expandVertically(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        expandFrom = Alignment.Top
-                    ),
-            exit = fadeOut(animationSpec = tween(durationMillis = 450)) +
-                    shrinkVertically(
-                        animationSpec = tween(durationMillis = 450, easing = LinearOutSlowInEasing),
-                        shrinkTowards = Alignment.Top
+                    IgnoreContactsOptions(
+                        label = stringResource(R.string.settings_ignore_contacts_outgoing),
+                        selectedEnum = ignoreContactsModeOutgoing,
+                        selectedCount = ignoredContactsOutgoingCount,
+                        onSelected = { actions.setIgnoreContactsModeOutgoing(it) },
+                        onSelectContacts = onOpenContactsOutgoing
                     )
-        ) {
-            Column {
-                ToggleListItem(
-                    label           = stringResource(R.string.settings_ignore_cross_country_outgoing),
-                    checked         = ignoreCrossCountryOutgoing,
-                    onCheckedChange = { actions.setIgnoreCrossCountryOutgoing(it) }
-                )
-                IgnoreContactsOptions(
-                    label           = stringResource(R.string.settings_ignore_contacts_outgoing),
-                    selectedEnum     = ignoreContactsModeOutgoing,
-                    selectedCount    = ignoredContactsOutgoingCount,
-                    onSelected      = { actions.setIgnoreContactsModeOutgoing(it) },
-                    onSelectContacts = onOpenContactsOutgoing
-                )
+                }
             }
         }
     }
@@ -766,6 +720,91 @@ private fun RecordingSection(
             },
             onDismiss = { showFileNameFormatDialog = false }
         )
+    }
+}
+
+/** Shows the auto-delete retention policy for saved recordings.
+ *
+ * @param preferences   The [AppPreferences] instance to read data from.
+ * @param updateTrigger Trigger value to force recomposition when settings change.
+ * @param actions       Implementation of [SettingsActions] to handle user interaction.
+ */
+@Composable
+private fun RetentionSection(preferences: AppPreferences, updateTrigger: Int, actions: SettingsActions) {
+    val retentionMode = remember(updateTrigger) { preferences.getRetentionMode() }
+    val maxAgeDays = remember(updateTrigger) { preferences.getRetentionMaxAgeDays() }
+    val maxStorageMb = remember(updateTrigger) { preferences.getRetentionMaxStorageMb() }
+
+    SettingsSection(title = stringResource(R.string.settings_section_retention)) {
+        val retentionOptions = AppPreferences.RetentionMode.entries.map { mode ->
+            OptionItem(mode.key, stringResource(mode.displayNameResId))
+        }
+
+        M3DropdownField(
+            label = stringResource(R.string.settings_retention_mode),
+            selected = retentionOptions.find { it.key == retentionMode.key } ?: retentionOptions.first(),
+            options = retentionOptions,
+            onOptionSelected = { actions.setRetentionMode(AppPreferences.RetentionMode.fromKey(it.key)) },
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+        )
+
+        AnimatedContent(
+            targetState = retentionMode,
+            transitionSpec = {
+                (fadeIn(tween(300)) + expandVertically(tween(300))) togetherWith
+                    (fadeOut(tween(250)) + shrinkVertically(tween(250)))
+            },
+            label = "RetentionModeSettingsTransition"
+        ) { targetMode ->
+            when (targetMode) {
+                AppPreferences.RetentionMode.MAX_AGE -> {
+                    var textState by remember(maxAgeDays) { mutableStateOf(maxAgeDays.toString()) }
+                    OutlinedTextField(
+                        value = textState,
+                        onValueChange = { value ->
+                            if (value.all { it.isDigit() } && value.length <= 4) {
+                                textState = value
+                                value.toIntOrNull()?.takeIf { it > 0 }?.let { actions.setRetentionMaxAgeDays(it) }
+                            }
+                        },
+                        label = { Text(stringResource(R.string.settings_retention_max_age_days)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done)
+                    )
+                }
+                AppPreferences.RetentionMode.MAX_STORAGE -> {
+                    var textState by remember(maxStorageMb) { mutableStateOf(maxStorageMb.toString()) }
+                    OutlinedTextField(
+                        value = textState,
+                        onValueChange = { value ->
+                            if (value.all { it.isDigit() } && value.length <= 6) {
+                                textState = value
+                                value.toIntOrNull()?.takeIf { it > 0 }?.let { actions.setRetentionMaxStorageMb(it) }
+                            }
+                        },
+                        label = { Text(stringResource(R.string.settings_retention_max_storage_mb)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done)
+                    )
+                }
+                AppPreferences.RetentionMode.KEEP_FOREVER -> {}
+            }
+        }
+
+        if (retentionMode != AppPreferences.RetentionMode.KEEP_FOREVER) {
+            Text(
+                text = stringResource(R.string.settings_retention_starred_note),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
     }
 }
 
@@ -785,7 +824,6 @@ private fun AudioSection(preferences: AppPreferences, updateTrigger: Int, action
 
     val isDebugEnabled = remember(updateTrigger) { preferences.isDebugEnabled() }
     val audioSource = remember(updateTrigger) { preferences.getAudioSource() }
-    val audioCodec = remember(updateTrigger) { preferences.getAudioCodec() }
     val savedBitRate = remember(updateTrigger) { preferences.getAudioBitRate() }
         
     SettingsSection(title = stringResource(R.string.settings_section_audio)) {
@@ -817,28 +855,12 @@ private fun AudioSection(preferences: AppPreferences, updateTrigger: Int, action
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
         )
 
-        val codecOptions = ScrcpyAudioCodec.entries
-            .map { OptionItem(it.cliKey, stringResource(it.titleResId)) }
-        
-        M3DropdownField(
-            label    = stringResource(R.string.settings_audio_codec),
-            selected = codecOptions.find { it.key == audioCodec } 
-                ?: codecOptions.first(),
-            options  = codecOptions,
-            onOptionSelected = { actions.setAudioCodec(it.key) },
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.settings_audio_codec)) },
+            supportingContent = { Text("M4A · AAC") },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
         )
-        // Show the AAC recommendation if the user has issues.
-        // LocalInspectionMode.current is true in Android Preview, it prevents a preview compilation error.
-        if (!LocalInspectionMode.current && audioCodec != ScrcpyAudioCodec.AAC.cliKey) {
-            Text(
-                text     = stringResource(R.string.settings_audio_bitrate_recommendation),
-                style    = MaterialTheme.typography.labelSmall,
-                color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
-            )
-        }
-
         val bitrateOptions = listOf(8000, 16000, 32000, 64000, 128000)
             .map { OptionItem(it.toString(), stringResource(R.string.audio_bitrate_kbps, it / 1000)) }
 
@@ -865,8 +887,6 @@ private fun DebugSection(preferences: AppPreferences, updateTrigger: Int, action
     val isDebugEnabled = remember(updateTrigger) { preferences.isDebugEnabled() }
     val debugCallerNumber = remember(updateTrigger) { preferences.getDebugCallerNumber() }
     val isLoggingEnabled = remember(updateTrigger) { preferences.isLoggingEnabled() }
-    val context = LocalContext.current
-
     SettingsSection(title = stringResource(R.string.settings_section_debug)) {
         ToggleListItem(
             label           = stringResource(R.string.settings_debug_logging_enabled),
@@ -928,23 +948,11 @@ private fun DebugSection(preferences: AppPreferences, updateTrigger: Int, action
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Button(
+                        onClick = onExportLogs,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Button(
-                            onClick = onExportLogs,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(stringResource(R.string.settings_debug_logging_generate_report))
-                        }
-
-                        OutlinedButton(
-                            onClick = { context.openGithubReportIssue()},
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(stringResource(R.string.settings_debug_logging_report_on_github))
-                        }
+                        Text(stringResource(R.string.settings_debug_logging_generate_report))
                     }
                 }
 
@@ -1015,26 +1023,43 @@ private fun DebugSection(preferences: AppPreferences, updateTrigger: Int, action
  */
 @Composable
 private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text       = title,
-            style      = MaterialTheme.typography.titleSmall,
-            color      = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold,
-            modifier   = Modifier.padding(start = 4.dp)
-        )
-        ElevatedCard(
-            modifier  = Modifier.fillMaxWidth(),
-            colors    = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-            ),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
-        ) {
-            Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                content()
-            }
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        SettingsSectionHeader(title)
+        SettingsCard(content = content)
     }
+}
+
+@Composable
+private fun SettingsSectionHeader(title: String) {
+    Text(
+        text = title.uppercase(Locale.getDefault()),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+    )
+}
+
+@Composable
+private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 6.dp
+    ) {
+        Column(modifier = Modifier.padding(vertical = 2.dp), content = content)
+    }
+}
+
+@Composable
+private fun SettingsDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        thickness = 0.5.dp,
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.72f)
+    )
 }
 
 /**
@@ -1224,6 +1249,7 @@ private fun SettingsScreenPreview() {
             override fun setAudioSource(source: String) {}
             override fun setAudioCodec(codec: String) {}
             override fun setAudioBitRate(bitRate: Int) {}
+            override fun setGoogleDriveBackupEnabled(enabled: Boolean) {}
             override fun setThemeMode(mode: AppPreferences.ThemeMode) {}
             override fun setDynamicColorEnabled(enabled: Boolean) {}
             override fun setShowToastsEnabled(enabled: Boolean) {}
@@ -1236,13 +1262,14 @@ private fun SettingsScreenPreview() {
             override fun getAppVersion(): String = "Version 1.0.0 (Mock)"
             override fun setShizukuAutoManageEnabled(enabled: Boolean) {}
             override fun setShizukuStartOnRecordEnabled(enabled: Boolean) {}
-            override fun setShizukuKeepAliveEnabled(enabled: Boolean) {}
-            override fun setShizukuAuthKey(key: String) {}
             override fun setFileNameTemplate(template: String) {}
             override fun setCallDetectionMode(mode: CallDetectionMode) {}
             override fun setRecordThirdPartyCalls(enabled: Boolean) {}
             override fun setPostRecordingFileNotification(enabled: Boolean) {}
             override fun setOverlayEnabled(enabled: Boolean) {}
+            override fun setRetentionMode(mode: AppPreferences.RetentionMode) {}
+            override fun setRetentionMaxAgeDays(days: Int) {}
+            override fun setRetentionMaxStorageMb(mb: Int) {}
         }
 
         // File name template selection dialog
@@ -1254,6 +1281,7 @@ private fun SettingsScreenPreview() {
             actions = dummyActions,
             contactPickerState = null,
             onSelectFolder = {},
+            onSelectDriveBackupFolder = {},
             onOpenContactsIncoming = {},
             onOpenContactsOutgoing = {},
             onConfirmContacts = {},

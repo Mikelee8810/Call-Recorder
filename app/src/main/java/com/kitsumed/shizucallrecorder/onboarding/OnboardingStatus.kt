@@ -86,7 +86,8 @@ object OnboardingStatus {
             contactsGranted          = PermissionChecks.hasContactsPermission(context),
             batteryExempted          = PermissionChecks.hasBatteryExemption(context),
             storageSelected          = SafHelper.isFolderValid(context, storageUri),
-            // Special check here, if the auto-manage option was enabled, users already passed this check, and we can assume app will be able to start/stop Shizuku as needed.
+            // If auto-manage is enabled, users already passed this check and the app can
+            // start/recover Shizuku as needed. It deliberately never stops Shizuku.
             shizukuRunning           = ShizukuConnectionManager.isAvailable() || preferences.isShizukuAutoManageEnabled(),
             // We provide the context to use the Android Permission system as a fallback. Since if isShizukuAutoManageEnabled is enabled, we can assume the
             // shizuku server may not be running at the moment.

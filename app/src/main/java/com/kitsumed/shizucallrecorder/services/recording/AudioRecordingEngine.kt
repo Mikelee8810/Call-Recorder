@@ -11,7 +11,9 @@ package com.kitsumed.shizucallrecorder.services.recording
 import android.app.Service
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.telecom.TelecomManager
 import androidx.documentfile.provider.DocumentFile
 import com.kitsumed.shizucallrecorder.IShellService
 import com.kitsumed.shizucallrecorder.R
@@ -87,9 +89,10 @@ class AudioRecordingEngine {
     /**
      * Active codec enum resolved from the user's preference and confirmed by the stream header.
      * Updated once [ScrcpyClient.AudioPacketListener.onMetadataReceived] fires.
-     * Defaults to [ScrcpyAudioCodec.OPUS] as a safe initial value before the stream header is read.
+     * Defaults to [ScrcpyAudioCodec.AAC], the app's share-friendly recording format, before the
+     * stream header is read.
      */
-    var currentCodecEnum: ScrcpyAudioCodec = ScrcpyAudioCodec.OPUS
+    var currentCodecEnum: ScrcpyAudioCodec = ScrcpyAudioCodec.AAC
 
     /**
      * Coroutine scope for reading from the audio pipe data returned by the shell service.
@@ -125,7 +128,7 @@ class AudioRecordingEngine {
 
         val codecEnum = ScrcpyAudioCodec.fromKey(preferences.getAudioCodec())
         val bitRate = preferences.getAudioBitRate().takeIf { it > 0 } ?: codecEnum.defaultBitRate
-        val audioSourceEnum = ScrcpyAudioSource.fromKey(preferences.getAudioSource())
+        val audioSourceEnum = resolveAudioSource(context, preferences, metadata)
 
         AppLogger.i( "Starting recording pipeline: source=${audioSourceEnum.cliKey} codec=${codecEnum.cliKey} bitrate=$bitRate")
 
@@ -216,6 +219,37 @@ class AudioRecordingEngine {
                 AppLogger.w( "Audio reader ended: ${e.message}")
             }
         }
+    }
+
+    /**
+     * Carrier calls keep the user's normal source (VOICE_CALL by default). Third-party
+     * Telecom/VoIP calls use VOICE_PERFORMANCE on Android 10+, because scrcpy 4.0 maps it
+     * to Android's VOICE_PERFORMANCE source, which includes both microphone and device
+     * playback. Older supported devices fall back to VOICE_COMMUNICATION.
+     */
+    private fun resolveAudioSource(
+        context: Context,
+        preferences: AppPreferences,
+        metadata: EnrichedCallData
+    ): ScrcpyAudioSource {
+        val configured = ScrcpyAudioSource.fromKey(preferences.getAudioSource())
+        val packageName = metadata.packageName ?: return configured
+        if (!preferences.isRecordThirdPartyCallsEnabled()) return configured
+
+        val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
+        val isCarrierDialer = packageName == telecomManager?.systemDialerPackage ||
+                packageName == telecomManager?.defaultDialerPackage ||
+                packageName == "com.android.phone"
+
+        if (isCarrierDialer) return configured
+
+        val voipSource = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ScrcpyAudioSource.VOICE_PERFORMANCE
+        } else {
+            ScrcpyAudioSource.VOICE_COMMUNICATION
+        }
+        AppLogger.i("Third-party call from $packageName: using ${voipSource.cliKey} capture source")
+        return voipSource
     }
 
     /**

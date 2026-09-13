@@ -10,27 +10,34 @@ package com.kitsumed.shizucallrecorder.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// --- PRIMARY COLORS ---
-val Green80 = Color(0xFFB4D3A1) // Light Green for Dark Theme
-val Green40 = Color(0xFF386B20) // Deep Green for Light Theme
+// iOS-inspired system palette. The app intentionally uses one blue interaction
+// accent, neutral grouped surfaces, and red only for destructive/live states.
+val IOSBlue = Color(0xFF007AFF)
+val IOSBlueDark = Color(0xFF0A84FF)
+val IOSBlueContainerLight = Color(0xFFEAF3FF)
+val IOSBlueContainerDark = Color(0xFF0D2847)
+val IOSCyan = Color(0xFF32ADE6)
+val IOSMint = Color(0xFF34C759)
+val IOSNavy = Color(0xFF17324D)
 
-// --- SECONDARY & TERTIARY ---
-val GreenGrey80 = Color(0xFFC3C9BC)
-val GreenGrey40 = Color(0xFF5B6156)
-val AccentGreen80 = Color(0xFFA1D3BC)
-val AccentGreenDark = Color(0xFF00382B)
+val IOSGroupedBackground = Color(0xFFF2F2F7)
+val IOSCell = Color(0xFFFFFFFF)
+val IOSSecondarySurface = Color(0xFFF7F7FA)
+val IOSTertiarySurface = Color(0xFFE5E5EA)
+val IOSSeparator = Color(0xFFC6C6C8)
+val IOSLabel = Color(0xFF000000)
+val IOSSecondaryLabel = Color(0xFF8E8E93)
 
-// --- TEXT & "ON" COLORS ---
-val DeepDarkGreen = Color(0xFF00390A)   // High contrast for light surfaces
-val VeryDarkForest = Color(0xFF063900)  // Good for labels on light containers
-val DarkGreyGreen = Color(0xFF2D3229)   // Muted text
-val NearBlackText = Color(0xFF1B1C18)   // Universal dark text
-val OffWhiteText = Color(0xFFE3E3DC)    // Light text for dark backgrounds
-val White = Color.White
+val IOSDarkBackground = Color(0xFF000000)
+val IOSDarkCell = Color(0xFF1C1C1E)
+val IOSDarkSecondarySurface = Color(0xFF2C2C2E)
+val IOSDarkTertiarySurface = Color(0xFF3A3A3C)
+val IOSDarkSeparator = Color(0xFF38383A)
+val IOSDarkLabel = Color(0xFFFFFFFF)
+val IOSDarkSecondaryLabel = Color(0xFF98989D)
 
-// --- CONTAINERS & SURFACES ---
-val DarkSurface = Color(0xFF1B1C18)
-val LightSurface = Color(0xFFFDFDF6)
-val GreenContainerDark = Color(0xFF205107)
-val GreenContainerLight = Color(0xFFD0F0BC)
-val GreyGreenOutline = Color(0xFF91938A)
+val RecordingRed = Color(0xFFFF3B30)
+val RecordingRedDark = Color(0xFFFF453A)
+val OnRecordingRed = Color(0xFFFFFFFF)
+val RecordingRedContainerLight = Color(0xFFFFE9E7)
+val RecordingRedContainerDark = Color(0xFF4A1512)

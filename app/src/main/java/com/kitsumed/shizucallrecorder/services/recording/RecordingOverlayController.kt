@@ -86,11 +86,10 @@ class RecordingOverlayController(private val context: Context) {
                 AppPreferences.ThemeMode.DARK   -> true
                 AppPreferences.ThemeMode.SYSTEM -> isSystemInDarkTheme()
             }
-            val dynamicColor = appPreferences.isDynamicColorEnabled()
             // State false -> true for the animation
             val isVisible = remember { MutableTransitionState(false).apply { targetState = true } }
 
-            ShizuCallRecorderTheme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
+            ShizuCallRecorderTheme(darkTheme = darkTheme, dynamicColor = false) {
                 AnimatedVisibility(
                     visibleState = isVisible,
                     enter = slideInHorizontally(
