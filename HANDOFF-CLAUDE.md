@@ -132,3 +132,27 @@ The current modified/untracked state includes the main UI/theme/navigation files
 - Granola audio share: not verified.
 
 Finish the Shizuku reconnect bug first, then run the shortest acceptance sequence above. Do not expand scope.
+
+
+---
+## STATUS 2026-09-13 — Shizuku reconnect FIXED and proven on-device (commit ae2613f)
+
+**Root cause:** Shizuku's restarted server only pushes its binder to a uid it observes *starting* (`BinderSender: Uid X starts`). Our keep-alive process never restarts, so uid 10482 never got the new binder and `pingBinder()` stayed false forever.
+
+**Fix:** `ShizukuConnectionManager.installLifecycleListeners` (binder-received/dead listeners, installed in `ShizuApplication`); `ShizukuWatchdogReceiver.verifyRecovery` is a bounded retry (15s × 8) that cancels on binder-received; from attempt 2, if still no binder and `RecordingForegroundService.isRecordingActive` is false, it calls `Process.killProcess(myPid())` — the START_STICKY keepalive + alarms bring the process straight back, the server sees the uid start and delivers the binder.
+
+**Proof (logcat, Pixel 10 Pro XL):** server pid 16829 killed → restarted as 17702 → `attempt 1/8`, `attempt 2/8`, `restarting Call Recorder process` → `BinderSender: Uid 10482 starts` → `Shizuku binder received; server reachable (uid=2000)` → `automatic recovery succeeded (binder received)`. `recovery failed` count: 0. `grep privileged.api.STOP`: 0 hits.
+
+## Execution checklist (compact)
+- [x] Shizuku reconnect fix, 8/8 acceptance points proven
+- [x] Fresh `installDebug` (JBR 21) green
+- [x] Settings → Back → Recordings proven on device
+- [x] No `ShizuCallRecorder` in visible `values/strings.xml`
+- [x] Committed `ae2613f`, pushed, draft PR #1 body updated
+- [ ] Share a real M4A → ChatGPT chooser (optional, manual)
+- [ ] Drive folder pick → copied M4A visible in Drive (optional, manual gate)
+- [ ] Live call: overlay + notification (optional, needs a real call)
+
+## Final completion gate
+**REQUIRED (all done):** builds green; Shizuku never stopped; watchdog recovers after server restart with proof; no false error notification; Settings back works; branding = "Call Recorder"; work committed + pushed; PR body reflects verified vs unverified.
+**OPTIONAL (need a human/hardware gate):** Drive end-to-end, ChatGPT/Granola share chooser, live-call overlay/notification, third-party VoIP capture.
