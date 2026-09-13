@@ -677,14 +677,18 @@ private fun RecordingsList(
     onToggleSelected: (RecordingItem) -> Unit
 ) {
     val listState = rememberLazyListState()
+    val initialRevealDone = remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { kotlinx.coroutines.delay(700); initialRevealDone.value = true }
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        // Stagger only the very first screenful; rows composed later while scrolling appear at once,
+        // otherwise every row that scrolls into view sits invisible for up to ~400ms first.
         itemsIndexed(items, key = { _, item -> item.recording.uri.toString() }) { index, item ->
-            StaggeredReveal(index = index) {
+            StaggeredReveal(index = index, skip = initialRevealDone.value || index > 10) {
                 RecordingRow(
                     item = item,
                     isPlaying = playbackState.currentUri == item.recording.uri,
@@ -707,10 +711,11 @@ private fun RecordingsList(
 
 /** Fades + slides a row in shortly after composition, staggered by [index], for a deliberate reveal instead of an instant dump of rows. */
 @Composable
-private fun StaggeredReveal(index: Int, content: @Composable () -> Unit) {
+private fun StaggeredReveal(index: Int, skip: Boolean, content: @Composable () -> Unit) {
+    if (skip) { content(); return }
     var visible by remember(index) { mutableStateOf(false) }
     LaunchedEffect(index) {
-        kotlinx.coroutines.delay((index.coerceAtMost(12) * 35).toLong())
+        kotlinx.coroutines.delay((index.coerceAtMost(10) * 35).toLong())
         visible = true
     }
     AnimatedVisibility(
