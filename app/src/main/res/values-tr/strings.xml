@@ -50,8 +50,6 @@
     <string name="settings_shizuku_auth_key">Shizuku Intent\'leri kimlik doğrulama anahtarı</string>
     <string name="settings_shizuku_start_on_record">Yalnızca kayıt sırasında başlat</string>
     <string name="settings_shizuku_start_on_record_desc">Shizuku yalnızca kayıt düğmesine bastığınızda veya otomatik kayıt kuralı eşleştiğinde başlar</string>
-    <string name="settings_shizuku_keep_alive">Shizuku uygulamasını etkin tut</string>
-    <string name="settings_shizuku_keep_alive_desc">Durdurma intent\'ini gönderme</string>
     <string name="settings_tap_to_select_folder">Klasör seçmek için dokunun...</string>
     <string name="settings_recording_folder_label">Kayıt klasörü</string>
     <string name="settings_file_name_template">Dosya adı şablonu</string>

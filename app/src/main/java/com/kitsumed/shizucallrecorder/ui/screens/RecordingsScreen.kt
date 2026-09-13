@@ -102,6 +102,7 @@ fun RecordingsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val shareChooserTitle = stringResource(R.string.recordings_share)
     val viewModel: RecordingsViewModel = viewModel()
 
     val uiState by viewModel.uiState.collectAsState()
@@ -147,7 +148,7 @@ fun RecordingsScreen(
                     putParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, uris)
                     addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                context.startActivity(android.content.Intent.createChooser(intent, context.getString(R.string.recordings_share)))
+                context.startActivity(android.content.Intent.createChooser(intent, shareChooserTitle))
             }
         },
         modifier = modifier

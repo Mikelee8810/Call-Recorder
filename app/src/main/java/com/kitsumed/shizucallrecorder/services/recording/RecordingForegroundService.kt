@@ -276,9 +276,8 @@ class RecordingForegroundService : Service() {
         overlayController.hideOverlay()
         stopRecordingSessionAndService()
         shizukuManager.unbind()
-        if (appPreferences.isShizukuAutoManageEnabled() && !appPreferences.isShizukuKeepAliveEnabled()) {
-            ShizukuConnectionManager.stopServer(this, appPreferences.getShizukuAuthKey())
-        }
+        // Deliberately never stops the Shizuku server here: this app may only ever start it
+        // (e.g. before a recording), never stop it, so it stays ready for the next call.
         super.onDestroy()
     }
 

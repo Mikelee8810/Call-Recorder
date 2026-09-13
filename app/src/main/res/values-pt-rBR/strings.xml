@@ -50,8 +50,6 @@
     <string name="settings_shizuku_auth_key">Shizuku Chave de autenticação de intenções</string>
     <string name="settings_shizuku_start_on_record">Comece apenas durante a gravação</string>
     <string name="settings_shizuku_start_on_record_desc">Shizuku só começará quando você pressionar gravar ou uma regra de gravação automática corresponder</string>
-    <string name="settings_shizuku_keep_alive">Manter Shizuku vivo</string>
-    <string name="settings_shizuku_keep_alive_desc">Não envie a intenção de parada</string>
     <string name="settings_tap_to_select_folder">Toque para selecionar a pasta...</string>
     <string name="settings_recording_folder_label">Pasta de Gravação</string>
     <string name="settings_file_name_template">Modelo de nome de arquivo</string>

@@ -134,8 +134,6 @@
     <string name="settings_debug_logging_steps">1、请先确认一下，您想提的问题是否已经有人反馈过了（包括Closed Issues）。如果确认没有，请继续。\n2、打开日志记录功能，然后尝试重现要反馈的错误。\n3、点击下方的“生成日志文件”按钮，将日志保存至您的设备。\n4、点击“反馈到GitHub”按钮，创建新的 Issue，填写相关的信息并上传日志文件。</string>
     <string name="recording_toast_standby">即将录制通话：%1$s。</string>
     <string name="recording_error_server_missing">Scrcpy-server二进制文件缺失，或者SHA256安全校验失败。如果看到此消息，请直接反馈此问题。</string>
-    <string name="settings_shizuku_keep_alive_desc">结束通话时保持Shizuku继续运行（仅在开始通话时触发自启动）</string>
-    <string name="settings_shizuku_keep_alive">保持Shizuku进程常驻</string>
     <string name="sponsor_days_used">ShizuCallRecorder已陪伴您走过 %1$d 天！</string>
     <string name="sponsor_way_to_help">您可以通过这些方式来帮助我们：</string>
     <string name="sponsor_way_github_sponsor_title">在Github上协助我们</string>

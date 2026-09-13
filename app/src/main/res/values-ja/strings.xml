@@ -42,7 +42,6 @@
     <string name="settings_shizuku_auto_manage_desc">Shizukuを自動的に開始・停止します</string>
     <string name="settings_shizuku_start_on_record">録音時のみ開始する</string>
     <string name="settings_shizuku_start_on_record_desc">録音ボタンを手動で押すか、自動録音ルールにマッチした場合のみShizukuを開始します</string>
-    <string name="settings_shizuku_keep_alive_desc">停止インテントを送信しない</string>
     <string name="settings_call_detection_method">着信検知方式</string>
     <string name="settings_record_third_party_calls">サードパーティアプリでの録音</string>&gt;
     <string name="settings_tap_to_select_folder">タップしてフォルダを選択...</string>

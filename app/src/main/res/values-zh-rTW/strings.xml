@@ -72,8 +72,6 @@
     <string name="settings_shizuku_auth_key">Shizuku Intent 驗證金鑰</string>
     <string name="settings_shizuku_start_on_record">僅在錄音時啟動</string>
     <string name="settings_shizuku_start_on_record_desc">只有在您按下錄音或符合自動錄音規則時，才會啟動 Shizuku</string>
-    <string name="settings_shizuku_keep_alive">讓 Shizuku 持續執行</string>
-    <string name="settings_shizuku_keep_alive_desc">不要傳送停止 Intent</string>
     <string name="settings_call_detection_method">通話偵測方式</string>
     <string name="settings_call_detection_method_warning_title">支援限制通知</string>
     <string name="call_detection_mode_phonestate_description">使用包含已淘汰欄位的舊式電話狀態廣播。此模式很容易發生競爭條件，而且只能提供有限的資訊。</string>

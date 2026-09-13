@@ -77,8 +77,6 @@
     <string name="settings_shizuku_auth_key">Autentizačný kľúč Shizuku Intents</string>
     <string name="settings_shizuku_start_on_record">Spustiť až pri nahrávaní</string>
     <string name="settings_shizuku_start_on_record_desc">Shizuku sa spustí len vtedy, keď stlačíte tlačidlo nahrávania alebo sa uplatní pravidlo automatického nahrávania</string>
-    <string name="settings_shizuku_keep_alive">Udržovať Shizuku stále spustené</string>
-    <string name="settings_shizuku_keep_alive_desc">Nezasielať príkaz na zastavenie</string>
     <string name="settings_call_detection_method">Metóda detekcie hovoru</string>
     <string name="settings_call_detection_method_warning_title">Oznámenie o obmedzenej podpore</string>
     <string name="call_detection_mode_phonestate_description">Používa staršie rozhranie telefónu so zastaranými údajmi. Tento režim je veľmi náchylný na situácie k zaseknutiu a poskytuje veľmi málo informácií.</string>

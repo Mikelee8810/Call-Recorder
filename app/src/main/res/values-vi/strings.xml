@@ -157,8 +157,6 @@
     <string name="sponsor_notification_call_to_action">Chúng tôi cần sự giúp đỡ của bạn!</string>
     <string name="permission_manage_ongoing_calls_label">Quản lý các cuộc gọi đang diễn ra</string>
     <string name="permission_manage_ongoing_calls_description">Quyền AppOps được cấp tự động với Shizuku. Cần thiết để phát hiện cuộc gọi bằng InCallService.</string>
-    <string name="settings_shizuku_keep_alive">Hãy giữ cho Shizuku sống sót</string>
-    <string name="settings_shizuku_keep_alive_desc">Không gửi ý định dừng</string>
     <string name="settings_call_detection_method">Phương pháp phát hiện cuộc gọi</string>
     <string name="settings_call_detection_method_warning_title">Thông báo hỗ trợ có giới hạn</string>
     <string name="call_detection_mode_phonestate_description">Hãy sử dụng chế độ phát sóng trạng thái điện thoại cũ với các trường đã lỗi thời. Chế độ này rất dễ xảy ra tình trạng tranh chấp tài nguyên và chỉ cung cấp cho chúng ta một lượng thông tin hạn chế.</string>

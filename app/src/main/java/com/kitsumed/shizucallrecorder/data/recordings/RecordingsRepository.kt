@@ -81,11 +81,18 @@ object RecordingsRepository {
     }
 
     private fun extractPhoneNumber(fileName: String): String? {
-        val match = PHONE_NUMBER_REGEX.find(fileName.substringBeforeLast('.')) ?: return null
-        val digitsOnly = match.value.count { it.isDigit() }
+        val matches = PHONE_NUMBER_REGEX.findAll(fileName.substringBeforeLast('.')).toList()
+        if (matches.isEmpty()) return null
+        // File names are formatted as "<timestamp>_<direction>_<number>", and the leading timestamp
+        // (e.g. "20260912") also satisfies this digit-run pattern, so find() alone would return the
+        // date instead of the number. Prefer a match with a leading '+' (how numbers are written in
+        // recording file names); otherwise fall back to the last digit run, since the number always
+        // comes after the timestamp.
+        val best = matches.firstOrNull { it.value.startsWith('+') } ?: matches.last()
+        val digitsOnly = best.value.count { it.isDigit() }
         // Require enough digits to plausibly be a phone number, avoids matching a plain date/time stamp.
         if (digitsOnly < 6) return null
-        return match.value.trim()
+        return best.value.trim()
     }
 
     private fun extractDirection(fileName: String): CallDirection? = when {

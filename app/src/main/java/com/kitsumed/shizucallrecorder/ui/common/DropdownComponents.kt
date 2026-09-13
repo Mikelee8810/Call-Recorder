@@ -8,12 +8,19 @@
 
 package com.kitsumed.shizucallrecorder.ui.common
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.kitsumed.shizucallrecorder.ui.theme.ShizuCallRecorderTheme
 
 /**
@@ -32,13 +39,15 @@ data class OptionItem(
 )
 
 /**
- * A Material 3 [ExposedDropdownMenuBox]-based dropdown field.
+ * A settings row that opens a [ModalBottomSheet] to pick one of [options], instead of a Material
+ * dropdown menu - a modal presentation for a secondary action, in keeping with the rest of the
+ * design direction (see [com.kitsumed.shizucallrecorder.ui.screens.RecordingsScreen]'s sort sheet).
  *
- * @param label            Text label shown above the field.
+ * @param label            Text label shown above the current value.
  * @param selected         The currently selected [OptionItem].
- * @param options          All available options shown in the dropdown menu.
+ * @param options          All available options shown in the sheet.
  * @param onOptionSelected Called with the chosen [OptionItem] when the user picks a new option.
- * @param modifier         Optional layout modifier forwarded to the root [ExposedDropdownMenuBox].
+ * @param modifier         Optional layout modifier forwarded to the root row.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,61 +58,77 @@ fun M3DropdownField(
     onOptionSelected: (OptionItem) -> Unit,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
-    ) {
-    var expanded by remember { mutableStateOf(false) }
+) {
+    var showSheet by remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(
-        expanded         = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier        = modifier
+    Column(
+        modifier = modifier
+            .clickable { showSheet = true }
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        OutlinedTextField(
-            value         = selected.label,
-            onValueChange = {},
-            readOnly      = true,
-            label         = { Text(label) },
-            isError = isError,
-            trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors        = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            modifier      = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth()
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
         )
-        ExposedDropdownMenu(
-            expanded         = expanded,
-            onDismissRequest = { expanded = false }
+        Spacer(modifier = Modifier.height(2.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = {
-                        Column(
-                            modifier = Modifier.padding(vertical = if (option.description != null) 4.dp else 0.dp)
-                        ) {
-                            Text(
-                                text = option.label,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            option.description?.let { desc ->
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = desc,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (option.enabled) {
-                                        LocalContentColor.current.copy(alpha = 0.7f)
-                                    } else {
-                                        LocalContentColor.current
-                                    }
-                                )
-                            }
-                        }
-                    },
-                    onClick = {
-                        if (option.enabled) {
-                            onOptionSelected(option)
-                            expanded = false
-                        }
-                    },
-                    enabled        = option.enabled,
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+            Text(
+                text = selected.label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+
+    if (showSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
                 )
+                options.forEach { option ->
+                    val isSelected = option.key == selected.key
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                option.label,
+                                color = if (option.enabled) MaterialTheme.colorScheme.onSurface
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                        },
+                        supportingContent = option.description?.let { desc ->
+                            { Text(desc, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        },
+                        trailingContent = {
+                            if (isSelected) {
+                                Icon(Icons.Outlined.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable(enabled = option.enabled) {
+                            onOptionSelected(option)
+                            showSheet = false
+                        }
+                    )
+                }
             }
         }
     }

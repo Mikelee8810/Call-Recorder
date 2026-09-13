@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Key
@@ -450,7 +451,6 @@ private fun VisualSection(preferences: AppPreferences, updateTrigger: Int, actio
 private fun SecuritySection(preferences: AppPreferences, updateTrigger: Int, actions: SettingsActions) {
     val autoManageShizuku = remember(updateTrigger) { preferences.isShizukuAutoManageEnabled() }
     val shizukuStartOnRecord = remember(updateTrigger) { preferences.isShizukuStartOnRecordEnabled() }
-    val shizukuKeepAlive = remember(updateTrigger) { preferences.isShizukuKeepAliveEnabled() }
     val shizukuAuthKey = remember(updateTrigger) { preferences.getShizukuAuthKey() }
 
     SettingsSection(title = stringResource(R.string.settings_section_security)) {
@@ -521,13 +521,6 @@ private fun SecuritySection(preferences: AppPreferences, updateTrigger: Int, act
                     checked         = shizukuStartOnRecord,
                     onCheckedChange = { actions.setShizukuStartOnRecordEnabled(it) },
                     description     = stringResource(R.string.settings_shizuku_start_on_record_desc)
-                )
-
-                ToggleListItem(
-                    label           = stringResource(R.string.settings_shizuku_keep_alive),
-                    checked         = shizukuKeepAlive,
-                    onCheckedChange = { actions.setShizukuKeepAliveEnabled(it) },
-                    description     = stringResource(R.string.settings_shizuku_keep_alive_desc)
                 )
             }
         }
@@ -1334,7 +1327,6 @@ private fun SettingsScreenPreview() {
             override fun getAppVersion(): String = "Version 1.0.0 (Mock)"
             override fun setShizukuAutoManageEnabled(enabled: Boolean) {}
             override fun setShizukuStartOnRecordEnabled(enabled: Boolean) {}
-            override fun setShizukuKeepAliveEnabled(enabled: Boolean) {}
             override fun setShizukuAuthKey(key: String) {}
             override fun setFileNameTemplate(template: String) {}
             override fun setCallDetectionMode(mode: CallDetectionMode) {}

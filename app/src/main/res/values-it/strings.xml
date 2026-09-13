@@ -57,7 +57,6 @@
     <string name="sponsor_way_contribute_description">Aiuta con il codice, con segnalazioni di errori, o traduzioni.</string>
     <string name="sponsor_way_share_title">Condividi l\'App</string>
     <string name="sponsor_notification_call_to_action_title">Ti sta piacendo ShizuCallRecorder?</string>
-    <string name="settings_shizuku_keep_alive">Mantieni Shizuku acceso</string>
     <string name="settings_file_name_template_placeholders_preview">Anteprima: %1$s</string>
     <string name="placeholder_date_year_desc">L\'anno attuale (per esempio 2026)</string>
     <string name="placeholder_direction_desc">La direzione della chiamata (in entrata/in uscita)</string>
@@ -118,5 +117,4 @@
     <string name="sponsor_notification_action">Visualizza le Opzioni di Supporto</string>
     <string name="permission_manage_ongoing_calls_label">Gestisci le Chiamate in Corso</string>
     <string name="permission_manage_ongoing_calls_description">Permessi AppOps concessi automaticamente tramite Shizuku. Richiesti per individuare chiamate con InCallSrrvice.</string>
-    <string name="settings_shizuku_keep_alive_desc">Non inviare l\'intento di stop</string>
 </resources>

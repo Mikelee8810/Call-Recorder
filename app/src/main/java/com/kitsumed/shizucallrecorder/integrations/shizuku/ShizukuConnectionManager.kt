@@ -173,35 +173,8 @@ class ShizukuConnectionManager(
             }
         }
 
-        /**
-         * Stops the Shizuku server via broadcast intent.
-         *
-         * @param context The application context.
-         * @param authKey The authentication key for the Shizuku server.
-         * @throws IllegalStateException if the Shizuku manager package cannot be found.
-         */
-        fun stopServer(context: Context, authKey: String) {
-            try {
-                if (!isAvailable()) {
-                    AppLogger.i( "Shizuku server is already stopped, no need to send stop broadcast")
-                    return
-                }
-                val packageName = getPackageName(context) ?: throw IllegalStateException("Shizuku manager package not found, cannot stop server")
-
-                val action = "moe.shizuku.privileged.api.STOP"
-                val intent = Intent(action)
-
-                intent.apply {
-                    setPackage(packageName)
-                    putExtra("auth", authKey)
-                    addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
-                }
-                context.sendBroadcast(intent)
-                AppLogger.i( "Sent broadcast to stop Shizuku server to $packageName")
-            } catch (e: Exception) {
-                AppLogger.e( "Failed to send broadcast to stop Shizuku server", e)
-            }
-        }
+        // Deliberately no stopServer(): this app only ever starts the Shizuku server, never stops
+        // it, so it stays ready to record the next call.
 
         /**
          * Suspends and waits for the Shizuku server to become available, up to a specified timeout.

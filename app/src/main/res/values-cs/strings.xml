@@ -77,8 +77,6 @@
     <string name="settings_shizuku_auth_key">Ověřovací klíč pro Shizuku Intents</string>
     <string name="settings_shizuku_start_on_record">Spustit pouze při nahrávání</string>
     <string name="settings_shizuku_start_on_record_desc">Shizuku se spustí pouze při ručním zahájení nahrávání nebo při shodě s pravidlem automatického nahrávání</string>
-    <string name="settings_shizuku_keep_alive">Udržovat Shizuku spuštěné</string>
-    <string name="settings_shizuku_keep_alive_desc">Neodesílat intent pro zastavení</string>
     <string name="settings_call_detection_method">Metoda detekce hovoru</string>
     <string name="settings_call_detection_method_warning_title">Omezená podpora</string>
     <string name="call_detection_mode_phonestate_description">Používá starší broadcast stavu telefonu se zastaralými poli. Tento režim je velmi náchylný k chybám způsobeným souběhem událostí a poskytuje jen omezené množství informací.</string>

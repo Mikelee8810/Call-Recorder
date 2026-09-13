@@ -70,8 +70,6 @@
     <string name="settings_shizuku_auth_key">مفتاح مصادقة نوايا Shizuku</string>
     <string name="settings_shizuku_start_on_record">التشغيل فقط عند التسجيل</string>
     <string name="settings_shizuku_start_on_record_desc">سيبدأ Shizuku فقط عندما تضغط على تسجيل أو عند تطابق قاعدة تسجيل تلقائي</string>
-    <string name="settings_shizuku_keep_alive">إبقاء Shizuku قيد التشغيل</string>
-    <string name="settings_shizuku_keep_alive_desc">عدم إرسال أمر الإيقاف</string>
     <string name="settings_call_detection_method">طريقة اكتشاف المكالمات</string>
     <string name="settings_call_detection_method_warning_title">إشعار الدعم المحدود</string>
     <string name="call_detection_mode_phonestate_description">استخدم بث حالة الهاتف القديم مع الحقول المهملة. هذا الوضع عرضة للغاية لحالات السباق (Race conditions) ويوفر لنا قدراً محدوداً من المعلومات.</string>

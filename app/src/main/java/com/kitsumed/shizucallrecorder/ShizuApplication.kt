@@ -9,6 +9,7 @@
 package com.kitsumed.shizucallrecorder
 
 import android.app.Application
+import com.kitsumed.shizucallrecorder.integrations.shizuku.ShizukuWatchdogReceiver
 import com.kitsumed.shizucallrecorder.services.callDetection.CallDetectionOrchestrator
 import com.kitsumed.shizucallrecorder.utils.AppLogger
 
@@ -21,5 +22,8 @@ class ShizuApplication : Application() {
         AppLogger.init(applicationContext)
         // Sync configurations down to PackageManager mapping immediately on launch
         CallDetectionOrchestrator(applicationContext).syncComponents()
+        // Arms the periodic check even if the app is launched without a reboot in between
+        // (fresh install, or the setting was just turned on).
+        ShizukuWatchdogReceiver.schedule(applicationContext)
     }
 }
