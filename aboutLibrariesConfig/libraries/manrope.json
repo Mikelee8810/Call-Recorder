@@ -1,0 +1,15 @@
+{
+  "uniqueId": "com.kitsumed.shizucallrecorder.font.manrope",
+  "developers": [
+    {
+      "name": "Mikhail Sharanda",
+      "organisationUrl": "https://github.com/sharanda/manrope"
+    }
+  ],
+  "description": "Bundled body/label typeface used across the app.",
+  "name": "Manrope",
+  "website": "https://github.com/sharanda/manrope",
+  "licenses": [
+    "manrope-ofl-1.1"
+  ]
+}
