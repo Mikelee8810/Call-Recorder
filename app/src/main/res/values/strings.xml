@@ -333,4 +333,54 @@
     <string name="recording_shizuku_not_started">Shizuku-Server process is stopped. Please start Shizuku and ensure it is always able to run when the app wants to record audio.</string>
     <string name="recording_shizuku_permission_denied">Please allow the application to use Shizuku. Permission was denied.</string>
     <string name="recording_shizuku_auth_key_missing">Shizuku Intents authentication key is missing. Please enter it in the app settings.</string>
+
+    <!-- ========================================== -->
+    <!-- RECORDINGS LIBRARY & PLAYBACK               -->
+    <!-- ========================================== -->
+    <string name="recordings_title">Recordings</string>
+    <string name="recordings_search_hint">Search name or number…</string>
+    <string name="recordings_filter_all">All</string>
+    <string name="recordings_filter_incoming">Incoming</string>
+    <string name="recordings_filter_outgoing">Outgoing</string>
+    <string name="recordings_filter_starred">Starred</string>
+    <string name="recordings_empty_title">No recordings yet</string>
+    <string name="recordings_empty_message">Calls you record will show up here, ready to play back.</string>
+    <string name="recordings_empty_search_title">No matches</string>
+    <string name="recordings_empty_search_message">Try a different search term or filter.</string>
+    <string name="recordings_no_folder_title">No recordings folder selected</string>
+    <string name="recordings_no_folder_message">Choose a folder in Settings to start seeing your recordings here.</string>
+    <string name="recordings_no_folder_action">Open Settings</string>
+    <string name="recordings_loading">Loading recordings…</string>
+    <string name="recordings_error_title">Couldn\'t load recordings</string>
+    <string name="recordings_error_retry">Retry</string>
+    <string name="recordings_playback_error">This recording couldn\'t be played. The file may be missing or corrupted.</string>
+    <string name="recordings_star_add">Keep (exempt from auto-delete)</string>
+    <string name="recordings_star_remove">Remove from kept</string>
+    <string name="recordings_share">Share</string>
+    <string name="recordings_open_settings">Open settings</string>
+    <string name="recordings_unknown_number">Unknown number</string>
+    <string name="recordings_date_7d">7 days</string>
+    <string name="recordings_date_30d">30 days</string>
+    <string name="recordings_date_90d">90 days</string>
+    <string name="recordings_sort">Sort</string>
+    <string name="recordings_sort_newest">Newest first</string>
+    <string name="recordings_sort_oldest">Oldest first</string>
+    <string name="recordings_sort_longest">Longest duration</string>
+    <string name="recordings_sort_name">Contact name</string>
+    <string name="recordings_select_all">Select all</string>
+    <string name="recordings_delete_confirm">Delete %1$d selected recording(s)? This cannot be undone.</string>
+    <string name="general_more">More</string>
+    <string name="a11y_play">Play</string>
+    <string name="a11y_pause">Pause</string>
+    <string name="a11y_back">Back</string>
+
+    <!-- Retention policy -->
+    <string name="settings_section_retention">Storage &amp; Retention</string>
+    <string name="settings_retention_mode">Auto-delete recordings</string>
+    <string name="settings_retention_mode_keep_forever">Never (keep everything)</string>
+    <string name="settings_retention_mode_max_age">After a number of days</string>
+    <string name="settings_retention_mode_max_storage">When storage exceeds a limit</string>
+    <string name="settings_retention_max_age_days">Delete recordings older than (days)</string>
+    <string name="settings_retention_max_storage_mb">Maximum storage used (MB)</string>
+    <string name="settings_retention_starred_note">Kept/starred recordings are always exempt from auto-delete.</string>
 </resources>

@@ -99,6 +99,7 @@ import androidx.core.net.toUri
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -141,6 +142,7 @@ fun SettingsScreen(
         },
         onDismissContacts = { contactPickerViewModel.dismissContactPicker() },
         onExportLogs = { exportLogLauncher.launch("shizucallrecorder_bug_report.log") },
+        onBack = onBack,
         modifier = modifier
     )
 }
@@ -172,12 +174,13 @@ fun SettingsContent(
     onConfirmContacts: (Set<String>) -> Unit,
     onDismissContacts: () -> Unit,
     onExportLogs: () -> Unit,
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier
             .fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = Color.Transparent // The shared AppBackground (drawn by AppNavigationScreen) shows through.
     ) {
         LazyColumn(
             modifier = Modifier
@@ -189,11 +192,20 @@ fun SettingsContent(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.general_settings),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(R.string.a11y_back)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(R.string.general_settings),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             item { AboutSection(versionString = actions.getAppVersion()) }
             item {
@@ -206,6 +218,7 @@ fun SettingsContent(
                     onOpenContactsOutgoing = onOpenContactsOutgoing
                 )
             }
+            item { RetentionSection(preferences, updateTrigger, actions) }
             item { AudioSection(preferences, updateTrigger, actions) }
             item { SecuritySection(preferences, updateTrigger, actions) }
             item { VisualSection(preferences, updateTrigger, actions) }
@@ -769,6 +782,91 @@ private fun RecordingSection(
     }
 }
 
+/** Shows the auto-delete retention policy for saved recordings.
+ *
+ * @param preferences   The [AppPreferences] instance to read data from.
+ * @param updateTrigger Trigger value to force recomposition when settings change.
+ * @param actions       Implementation of [SettingsActions] to handle user interaction.
+ */
+@Composable
+private fun RetentionSection(preferences: AppPreferences, updateTrigger: Int, actions: SettingsActions) {
+    val retentionMode = remember(updateTrigger) { preferences.getRetentionMode() }
+    val maxAgeDays = remember(updateTrigger) { preferences.getRetentionMaxAgeDays() }
+    val maxStorageMb = remember(updateTrigger) { preferences.getRetentionMaxStorageMb() }
+
+    SettingsSection(title = stringResource(R.string.settings_section_retention)) {
+        val retentionOptions = AppPreferences.RetentionMode.entries.map { mode ->
+            OptionItem(mode.key, stringResource(mode.displayNameResId))
+        }
+
+        M3DropdownField(
+            label = stringResource(R.string.settings_retention_mode),
+            selected = retentionOptions.find { it.key == retentionMode.key } ?: retentionOptions.first(),
+            options = retentionOptions,
+            onOptionSelected = { actions.setRetentionMode(AppPreferences.RetentionMode.fromKey(it.key)) },
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+        )
+
+        AnimatedContent(
+            targetState = retentionMode,
+            transitionSpec = {
+                (fadeIn(tween(300)) + expandVertically(tween(300))) togetherWith
+                    (fadeOut(tween(250)) + shrinkVertically(tween(250)))
+            },
+            label = "RetentionModeSettingsTransition"
+        ) { targetMode ->
+            when (targetMode) {
+                AppPreferences.RetentionMode.MAX_AGE -> {
+                    var textState by remember(maxAgeDays) { mutableStateOf(maxAgeDays.toString()) }
+                    OutlinedTextField(
+                        value = textState,
+                        onValueChange = { value ->
+                            if (value.all { it.isDigit() } && value.length <= 4) {
+                                textState = value
+                                value.toIntOrNull()?.takeIf { it > 0 }?.let { actions.setRetentionMaxAgeDays(it) }
+                            }
+                        },
+                        label = { Text(stringResource(R.string.settings_retention_max_age_days)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done)
+                    )
+                }
+                AppPreferences.RetentionMode.MAX_STORAGE -> {
+                    var textState by remember(maxStorageMb) { mutableStateOf(maxStorageMb.toString()) }
+                    OutlinedTextField(
+                        value = textState,
+                        onValueChange = { value ->
+                            if (value.all { it.isDigit() } && value.length <= 6) {
+                                textState = value
+                                value.toIntOrNull()?.takeIf { it > 0 }?.let { actions.setRetentionMaxStorageMb(it) }
+                            }
+                        },
+                        label = { Text(stringResource(R.string.settings_retention_max_storage_mb)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done)
+                    )
+                }
+                AppPreferences.RetentionMode.KEEP_FOREVER -> {}
+            }
+        }
+
+        if (retentionMode != AppPreferences.RetentionMode.KEEP_FOREVER) {
+            Text(
+                text = stringResource(R.string.settings_retention_starred_note),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+    }
+}
+
 /** Shows the audio source, codec, and bit-rate dropdowns.
  *
  * The audio-source list is generated from [ScrcpyAudioSource.entries], filtered by
@@ -1243,6 +1341,9 @@ private fun SettingsScreenPreview() {
             override fun setRecordThirdPartyCalls(enabled: Boolean) {}
             override fun setPostRecordingFileNotification(enabled: Boolean) {}
             override fun setOverlayEnabled(enabled: Boolean) {}
+            override fun setRetentionMode(mode: AppPreferences.RetentionMode) {}
+            override fun setRetentionMaxAgeDays(days: Int) {}
+            override fun setRetentionMaxStorageMb(mb: Int) {}
         }
 
         // File name template selection dialog

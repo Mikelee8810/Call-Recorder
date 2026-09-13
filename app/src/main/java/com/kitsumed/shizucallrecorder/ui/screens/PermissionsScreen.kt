@@ -36,6 +36,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -303,7 +304,7 @@ fun PermissionsContent(
     Surface(
         modifier = modifier
             .fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = Color.Transparent // The shared AppBackground (drawn by AppNavigationScreen) shows through.
     ) {
         Column(
             modifier = Modifier

@@ -10,27 +10,43 @@ package com.kitsumed.shizucallrecorder.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// --- PRIMARY COLORS ---
-val Green80 = Color(0xFFB4D3A1) // Light Green for Dark Theme
-val Green40 = Color(0xFF386B20) // Deep Green for Light Theme
+// ─────────────────────────────────────────────────────────────────────────────
+// "Ember" palette. Light theme (a warm cream, never sterile white) is the hero
+// look; dark theme is a fully-considered warm-charcoal secondary, not an
+// afterthought inversion. One committed accent hue (burnt amber/ember) is used
+// consistently for primary actions and active/playing states. True red is
+// reserved exclusively for the literal "recording live" indicator - never used
+// decoratively elsewhere.
+// ─────────────────────────────────────────────────────────────────────────────
 
-// --- SECONDARY & TERTIARY ---
-val GreenGrey80 = Color(0xFFC3C9BC)
-val GreenGrey40 = Color(0xFF5B6156)
-val AccentGreen80 = Color(0xFFA1D3BC)
-val AccentGreenDark = Color(0xFF00382B)
+// --- Accent ("Ember") — the app's one confident, sharp accent ---
+val EmberDeep = Color(0xFFA34E0A)     // Primary on the light/cream hero theme (dark enough to read on cream)
+val EmberBright = Color(0xFFFF9E45)   // Primary/tertiary on the dark theme, and shared "active" highlight
+val EmberContainerLight = Color(0xFFF6DCBB)
+val EmberContainerDark = Color(0xFF5C3210)
+val OnEmberDeep = Color(0xFFFFF6EC)   // Cream text on the deep ember button (light theme)
+val OnEmberBright = Color(0xFF2B1400) // Near-black brown text on the bright ember button (dark theme)
 
-// --- TEXT & "ON" COLORS ---
-val DeepDarkGreen = Color(0xFF00390A)   // High contrast for light surfaces
-val VeryDarkForest = Color(0xFF063900)  // Good for labels on light containers
-val DarkGreyGreen = Color(0xFF2D3229)   // Muted text
-val NearBlackText = Color(0xFF1B1C18)   // Universal dark text
-val OffWhiteText = Color(0xFFE3E3DC)    // Light text for dark backgrounds
-val White = Color.White
+// --- Light theme surfaces: warm cream, not stark white ---
+val CreamGround = Color(0xFFF5EFE3)
+val CreamSurface = Color(0xFFFCF8F0)
+val CreamSurfaceHigh = Color(0xFFEDE3CE)
+val CreamOutline = Color(0xFFCFC0A6)
 
-// --- CONTAINERS & SURFACES ---
-val DarkSurface = Color(0xFF1B1C18)
-val LightSurface = Color(0xFFFDFDF6)
-val GreenContainerDark = Color(0xFF205107)
-val GreenContainerLight = Color(0xFFD0F0BC)
-val GreyGreenOutline = Color(0xFF91938A)
+// --- Dark theme surfaces: warm charcoal, not a cold blue-gray ---
+val CharcoalGround = Color(0xFF16130F)
+val CharcoalSurface = Color(0xFF1F1B15)
+val CharcoalSurfaceHigh = Color(0xFF2A241C)
+val CharcoalOutline = Color(0xFF4C4234)
+
+// --- Text ---
+val TextOnCream = Color(0xFF201A10)
+val TextOnCreamMuted = Color(0xFF6E6350)
+val TextOnCharcoal = Color(0xFFF1E9DA)
+val TextOnCharcoalMuted = Color(0xFFB7AB96)
+
+// --- Status: true red, reserved only for the live-recording indicator / destructive actions ---
+val RecordingRed = Color(0xFFD8402E)
+val OnRecordingRed = Color(0xFFFFF5F2)
+val RecordingRedContainerLight = Color(0xFFF6D6CF)
+val RecordingRedContainerDark = Color(0xFF4A1F17)

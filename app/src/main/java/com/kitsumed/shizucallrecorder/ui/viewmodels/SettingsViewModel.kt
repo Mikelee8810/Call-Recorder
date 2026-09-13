@@ -78,6 +78,9 @@ interface SettingsActions {
     fun setRecordThirdPartyCalls(enabled: Boolean)
     fun setPostRecordingFileNotification(enabled: Boolean)
     fun setOverlayEnabled(enabled: Boolean)
+    fun setRetentionMode(mode: AppPreferences.RetentionMode)
+    fun setRetentionMaxAgeDays(days: Int)
+    fun setRetentionMaxStorageMb(mb: Int)
 }
 
 /**
@@ -430,6 +433,26 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      */
     override fun setOverlayEnabled(enabled: Boolean) {
         preferences.setOverlayEnabled(enabled)
+        refresh()
+    }
+
+    // -------- Recordings retention settings
+
+    /** Sets how (if at all) old recordings are automatically deleted. */
+    override fun setRetentionMode(mode: AppPreferences.RetentionMode) {
+        preferences.setRetentionMode(mode)
+        refresh()
+    }
+
+    /** Sets the maximum age in days a recording is kept before auto-delete (used by [AppPreferences.RetentionMode.MAX_AGE]). */
+    override fun setRetentionMaxAgeDays(days: Int) {
+        preferences.setRetentionMaxAgeDays(days)
+        refresh()
+    }
+
+    /** Sets the maximum total storage in MB before the oldest recordings are auto-deleted (used by [AppPreferences.RetentionMode.MAX_STORAGE]). */
+    override fun setRetentionMaxStorageMb(mb: Int) {
+        preferences.setRetentionMaxStorageMb(mb)
         refresh()
     }
 }

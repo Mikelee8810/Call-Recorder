@@ -72,12 +72,15 @@ fun RecordingOverlay(
         label = "dotAlpha"
     )
 
-    // Animate the button background color based on recording state
+    // Animate the button background color based on recording state.
+    // Uses the app's own signal-lime accent for the active state (the same color used for the
+    // "REC" indicator dot below) instead of generic red/green, so this real-time surface reads
+    // as the same product as the rest of the redesigned app.
     val buttonBackgroundColor by animateColorAsState(
         targetValue = if (isActivelyRecording)
-            MaterialTheme.colorScheme.errorContainer
+            MaterialTheme.colorScheme.tertiary
         else if (isActivelyPaused)
-            Color.Green.copy(alpha = 0.4f)
+            MaterialTheme.colorScheme.secondaryContainer
         else
             MaterialTheme.colorScheme.primaryContainer,
         animationSpec = tween(durationMillis = 400),
@@ -159,24 +162,26 @@ fun RecordingOverlay(
                         Icon(
                             painter = painterResource(id = targetIconRes),
                             contentDescription = actionButtonDescription,
-                            tint = if (isActivelyRecording)
-                                MaterialTheme.colorScheme.onErrorContainer
-                            else
-                                MaterialTheme.colorScheme.onPrimaryContainer,
+                            tint = when {
+                                isActivelyRecording -> MaterialTheme.colorScheme.onTertiary
+                                isActivelyPaused -> MaterialTheme.colorScheme.onSecondaryContainer
+                                else -> MaterialTheme.colorScheme.onPrimaryContainer
+                            },
                             modifier = Modifier.size(42.dp)
                         )
                     }
                 }
 
-                // Blinking red dot
+                // Blinking "REC" indicator dot, colored with the app's signal accent.
                 if (isActivelyRecording) {
                     Box(
                         modifier = Modifier
                             .size(18.dp)
                             .align(Alignment.TopEnd)
                             .alpha(dotAlpha)
+                            .border(width = 2.dp, color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = CircleShape)
                             .background(
-                                color = Color.Red,
+                                color = MaterialTheme.colorScheme.error,
                                 shape = CircleShape
                             )
                     )

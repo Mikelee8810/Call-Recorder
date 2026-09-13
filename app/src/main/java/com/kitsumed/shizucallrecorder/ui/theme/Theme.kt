@@ -11,7 +11,9 @@ package com.kitsumed.shizucallrecorder.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -20,44 +22,112 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Green80,
-    onPrimary = DeepDarkGreen, // Dark text on light-green buttons
-    primaryContainer = GreenContainerDark,
-    onPrimaryContainer = GreenContainerLight,
+/**
+ * Light theme — the hero/default look: a warm cream ground (never sterile white) with a single
+ * confident burnt-amber ("ember") accent. Individual chrome pieces (top bars, the now-playing
+ * card, primary buttons) deliberately borrow the warm-charcoal palette for contrast and punch,
+ * the way Linear/Notion mix a light canvas with confidently dark chrome — see
+ * `ui/common/AppBackground.kt` and the "now playing" styling in `RecordingsScreen.kt`.
+ */
+private val LightColorScheme = lightColorScheme(
+    primary = EmberDeep,
+    onPrimary = OnEmberDeep,
+    primaryContainer = EmberContainerLight,
+    onPrimaryContainer = EmberDeep,
 
-    secondary = GreenGrey80,
-    onSecondary = DarkGreyGreen,
+    secondary = TextOnCreamMuted,
+    onSecondary = CreamSurface,
+    secondaryContainer = CreamSurfaceHigh,
+    onSecondaryContainer = TextOnCream,
 
-    tertiary = AccentGreen80,
-    onTertiary = AccentGreenDark,
+    tertiary = EmberDeep,
+    onTertiary = OnEmberDeep,
+    tertiaryContainer = EmberContainerLight,
+    onTertiaryContainer = EmberDeep,
 
-    surface = DarkSurface,
-    onSurface = OffWhiteText,
-    outline = GreyGreenOutline
+    background = CreamGround,
+    onBackground = TextOnCream,
+
+    surface = CreamSurface,
+    onSurface = TextOnCream,
+    surfaceVariant = CreamSurfaceHigh,
+    onSurfaceVariant = TextOnCreamMuted,
+    surfaceContainer = CreamSurface,
+    surfaceContainerLow = CreamGround,
+    surfaceContainerHigh = CreamSurfaceHigh,
+    surfaceContainerHighest = CreamSurfaceHigh,
+
+    outline = CreamOutline,
+    outlineVariant = CreamOutline,
+
+    error = RecordingRed,
+    onError = OnRecordingRed,
+    errorContainer = RecordingRedContainerLight,
+    onErrorContainer = RecordingRed
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Green40,
-    onPrimary = White, // White text on dark-green buttons
-    primaryContainer = GreenContainerLight,
-    onPrimaryContainer = VeryDarkForest,
+/**
+ * Dark theme — a fully-considered warm-charcoal secondary (not a retrofit): same ember accent
+ * and same product identity, just inverted for users who prefer or whose system requests it.
+ */
+private val DarkColorScheme = darkColorScheme(
+    primary = EmberBright,
+    onPrimary = OnEmberBright,
+    primaryContainer = EmberContainerDark,
+    onPrimaryContainer = EmberBright,
 
-    secondary = GreenGrey40,
-    onSecondary = White,
+    secondary = TextOnCharcoalMuted,
+    onSecondary = CharcoalGround,
+    secondaryContainer = CharcoalSurfaceHigh,
+    onSecondaryContainer = TextOnCharcoal,
 
-    surface = LightSurface,
-    onSurface = NearBlackText,
-    outline = GreyGreenOutline
+    tertiary = EmberBright,
+    onTertiary = OnEmberBright,
+    tertiaryContainer = EmberContainerDark,
+    onTertiaryContainer = EmberBright,
+
+    background = CharcoalGround,
+    onBackground = TextOnCharcoal,
+
+    surface = CharcoalSurface,
+    onSurface = TextOnCharcoal,
+    surfaceVariant = CharcoalSurfaceHigh,
+    onSurfaceVariant = TextOnCharcoalMuted,
+    surfaceContainer = CharcoalSurface,
+    surfaceContainerLow = CharcoalGround,
+    surfaceContainerHigh = CharcoalSurfaceHigh,
+    surfaceContainerHighest = CharcoalSurfaceHigh,
+
+    outline = CharcoalOutline,
+    outlineVariant = CharcoalOutline,
+
+    error = RecordingRed,
+    onError = OnRecordingRed,
+    errorContainer = RecordingRedContainerDark,
+    onErrorContainer = OnRecordingRed
+)
+
+/**
+ * Custom shape scheme: generous, consistently rounded corners throughout (cards, sheets,
+ * buttons) for the soft, comfortable, iOS-adjacent feel called for in the design direction -
+ * favoring restraint over a novelty shape (no cut corners, no sharp mixed geometry).
+ */
+val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(20.dp),
+    large = RoundedCornerShape(26.dp),
+    extraLarge = RoundedCornerShape(32.dp)
 )
 
 @Composable
 fun ShizuCallRecorderTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -87,6 +157,7 @@ fun ShizuCallRecorderTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = AppShapes,
         content = content
     )
 }

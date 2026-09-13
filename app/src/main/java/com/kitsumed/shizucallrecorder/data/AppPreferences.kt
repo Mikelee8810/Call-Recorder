@@ -76,7 +76,9 @@ class AppPreferences(context: Context) {
 
         // --- UI & Appearance ---
         val THEME_MODE = ThemeMode.SYSTEM
-        const val DYNAMIC_COLOR = true
+        // Defaults to false so the app's own committed color identity is shown out of the box;
+        // users who prefer Material You colors can still opt back in from Settings.
+        const val DYNAMIC_COLOR = false
         const val SHOW_TOASTS = true
         const val SHOW_RECORDING_OVERLAY = false
         const val OVERLAY_Y_POSITION = -1
@@ -85,6 +87,12 @@ class AppPreferences(context: Context) {
         const val SHIZUKU_START_ON_RECORD = false
         const val SHIZUKU_KEEP_ALIVE = false
         const val SHIZUKU_AUTH_KEY = ""
+
+        // --- Recordings library ---
+        val STARRED_RECORDINGS = emptySet<String>()
+        val RETENTION_MODE = RetentionMode.KEEP_FOREVER
+        const val RETENTION_MAX_AGE_DAYS = 30
+        const val RETENTION_MAX_STORAGE_MB = 500
     }
 
     /**
@@ -127,7 +135,13 @@ class AppPreferences(context: Context) {
         SHIZUKU_KEEP_ALIVE("shizuku_keep_alive"),
         SHIZUKU_AUTH_KEY("shizuku_auth_key"),
         CALL_DETECTION_MODE("call_detection_mode"),
-        RECORD_THIRD_PARTY_CALLS("record_third_party_calls");
+        RECORD_THIRD_PARTY_CALLS("record_third_party_calls"),
+
+        // --- Recordings library ---
+        STARRED_RECORDINGS("starred_recordings"),
+        RETENTION_MODE("retention_mode"),
+        RETENTION_MAX_AGE_DAYS("retention_max_age_days"),
+        RETENTION_MAX_STORAGE_MB("retention_max_storage_mb");
     }
 
     // -------- Nested enums
@@ -177,6 +191,32 @@ class AppPreferences(context: Context) {
              * @return The matching [ThemeMode], or throws an error if unrecognized.
              */
             fun fromKey(key: String?): ThemeMode = entries.firstOrNull { it.key == key } ?: throw IllegalArgumentException("Unknown ThemeMode key: $key")
+        }
+    }
+
+    /**
+     * Controls how (if at all) old recordings are automatically deleted.
+     * Starred recordings (see [getStarredRecordings]) are always exempt, regardless of mode.
+     *
+     * @param key The lowercase string stored in SharedPreferences.
+     */
+    enum class RetentionMode(val key: String, val displayNameResId: Int) {
+        /** Never auto-delete recordings. */
+        KEEP_FOREVER("keep_forever", R.string.settings_retention_mode_keep_forever),
+        /** Delete recordings older than [getRetentionMaxAgeDays] days. */
+        MAX_AGE("max_age", R.string.settings_retention_mode_max_age),
+        /** Once the recordings folder exceeds [getRetentionMaxStorageMb], delete the oldest first. */
+        MAX_STORAGE("max_storage", R.string.settings_retention_mode_max_storage);
+
+        companion object {
+            /**
+             * Parses a key string back into an enum constant.
+             *
+             * @throws IllegalArgumentException if no matching entry is found.
+             * @param key The string stored in SharedPreferences.
+             * @return The matching [RetentionMode], or throws an error if unrecognized.
+             */
+            fun fromKey(key: String?): RetentionMode = entries.firstOrNull { it.key == key } ?: throw IllegalArgumentException("Unknown RetentionMode key: $key")
         }
     }
 
@@ -446,4 +486,38 @@ class AppPreferences(context: Context) {
 
     /** Sets the Shizuku auth key. */
     fun setShizukuAuthKey(key: String) = setString(Key.SHIZUKU_AUTH_KEY, key)
+
+    // -------- Recordings library --------
+
+    /** Gets the set of starred/kept recordings (identified by their relative path within the recordings folder). Always exempt from auto-delete. */
+    fun getStarredRecordings() = getStringSet(Key.STARRED_RECORDINGS, DefaultsValue.STARRED_RECORDINGS)
+
+    /** Sets the set of starred/kept recordings. */
+    fun setStarredRecordings(paths: Set<String>) = setStringSet(Key.STARRED_RECORDINGS, paths)
+
+    /** Gets the current auto-delete retention mode for recordings. */
+    fun getRetentionMode(): RetentionMode {
+        val savedKey = getString(Key.RETENTION_MODE, DefaultsValue.RETENTION_MODE.key)
+        return try {
+            RetentionMode.fromKey(savedKey)
+        } catch (e: IllegalArgumentException) {
+            AppLogger.e("Invalid saved RetentionMode key: $savedKey, falling back to default. Error: ${e.message}")
+            DefaultsValue.RETENTION_MODE
+        }
+    }
+
+    /** Sets the auto-delete retention mode for recordings. */
+    fun setRetentionMode(mode: RetentionMode) = setString(Key.RETENTION_MODE, mode.key)
+
+    /** Gets the maximum age (in days) a recording is kept before auto-delete, used when [RetentionMode.MAX_AGE] is active. */
+    fun getRetentionMaxAgeDays() = getInt(Key.RETENTION_MAX_AGE_DAYS, DefaultsValue.RETENTION_MAX_AGE_DAYS)
+
+    /** Sets the maximum age (in days) a recording is kept before auto-delete. */
+    fun setRetentionMaxAgeDays(days: Int) = setInt(Key.RETENTION_MAX_AGE_DAYS, days)
+
+    /** Gets the maximum total storage (in MB) the recordings folder may use before the oldest recordings are auto-deleted, used when [RetentionMode.MAX_STORAGE] is active. */
+    fun getRetentionMaxStorageMb() = getInt(Key.RETENTION_MAX_STORAGE_MB, DefaultsValue.RETENTION_MAX_STORAGE_MB)
+
+    /** Sets the maximum total storage (in MB) the recordings folder may use before auto-delete kicks in. */
+    fun setRetentionMaxStorageMb(mb: Int) = setInt(Key.RETENTION_MAX_STORAGE_MB, mb)
 }
